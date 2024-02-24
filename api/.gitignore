@@ -1,0 +1,11 @@
+venv/
+env/
+.idea/
+.vscode
+
+__pycache__/
+
+Pipfile
+Pipfile.lock
+
+settings_local.py
