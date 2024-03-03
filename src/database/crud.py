@@ -1,9 +1,9 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, contains_eager
 
-from models.responses import PaginatedResponse
+from app.models.responses import PaginatedResponse
 
-from database import db_models
-from models.schemas import Bird
+from app.database import db_models
+from app.models.schemas import Bird
 
 
 def paginate(query, page: int = 1, per_page: int = 10):
@@ -16,6 +16,7 @@ def get_bird(db: Session, bird_id: int, language: str = "fr") -> Bird | None:
     bird = (
         db.query(db_models.Bird)
         .join(db_models.Translation)
+        .options(contains_eager(db_models.Bird.translations))
         .filter(db_models.Bird.id == bird_id)
         .filter(db_models.Translation.language_code == language)
         .first()
@@ -42,6 +43,7 @@ def get_birds(
     query = (
         db.query(db_models.Bird)
         .join(db_models.Translation)
+        .options(contains_eager(db_models.Bird.translations))
         .filter(db_models.Translation.language_code == language)
     )
     if species:
@@ -51,15 +53,17 @@ def get_birds(
     return paginate(query, page, per_page)
 
 
-def get_bird_with_images(db: Session, bird_id: int, language: str = "fr"):
-    return (
-        db.query(db_models.Bird)
-        .join(db_models.Translation)
-        .join(db_models.Image)
-        .filter(db_models.Bird.id == bird_id)
-        .filter(db_models.Translation.language_code == language)
-        .first()
-    )
+# def get_bird_with_images(db: Session, bird_id: int, language: str = "fr"):
+#     return (
+#         db.query(db_models.Bird)
+#         .join(db_models.Translation)
+#         .options(contains_eager(db_models.Bird.translations))
+#         .join(db_models.Image)
+#         .options(contains_eager(db_models.Bird.images))
+#         .filter(db_models.Bird.id == bird_id)
+#         .filter(db_models.Translation.language_code == language)
+#         .first()
+#     )
 
 
 def get_image(db: Session, img_id: int):

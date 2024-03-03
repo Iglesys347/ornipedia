@@ -10,8 +10,8 @@ class Bird(Base):
     id = Column(Integer, primary_key=True, index=True)
     latin_name = Column(String, nullable=False)
 
-    translations = relationship("Translation", back_populates="bird")
-    images = relationship("Image", back_populates="bird")
+    translations = relationship("Translation", back_populates="bird", lazy="noload")
+    images = relationship("Image", back_populates="bird", lazy="noload")
 
     def flat_dict(self):
         bird_dict = {"id": self.id, "latin_name": self.latin_name}

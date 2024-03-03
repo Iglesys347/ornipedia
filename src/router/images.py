@@ -4,11 +4,11 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from dependencies import get_db
+from app.dependencies import get_db
 
-from models.responses import ErrorMessage
+from app.models.responses import ErrorMessage
 
-from database.crud import get_image
+from app.database.crud import get_image
 
 
 router = APIRouter(

@@ -9,6 +9,6 @@ PSQL_DB = "ornipedia"
 DB_URL = f"postgresql://{PSQL_USER}:{PSQL_PASSWORD}@{PSQL_HOST}:{PSQL_PORT}/{PSQL_DB}"
 
 try:
-    from settings_local import *
+    from app.settings_local import *
 except ImportError:
     pass
