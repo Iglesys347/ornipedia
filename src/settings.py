@@ -7,8 +7,11 @@ PSQL_PORT = 5432
 PSQL_DB = "ornipedia"
 
 DB_URL = f"postgresql://{PSQL_USER}:{PSQL_PASSWORD}@{PSQL_HOST}:{PSQL_PORT}/{PSQL_DB}"
+DB_DEBUG = False
+
+ALLOWED_ORIGINS = []
 
 try:
-    from app.settings_local import *
+    from src.settings_local import *
 except ImportError:
     pass

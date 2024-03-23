@@ -3,12 +3,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.dependencies import get_db
+from src.dependencies import get_db
 
-from app.models.schemas import Bird, BirdWithImages
-from app.models.responses import PaginatedResponse, ErrorMessage
+from src.models.schemas import Bird, BirdWithImages
+from src.models.responses import PaginatedResponse, ErrorMessage
 
-from app.database.crud import get_bird, get_birds  # , get_bird_with_images
+from src.database.crud import get_bird, get_birds, get_bird_with_images
 
 router = APIRouter(
     prefix="/birds",
@@ -59,25 +59,25 @@ def read_bird(
     return bird
 
 
-# @router.get(
-#     "/{bird_id}/images",
-#     response_model=BirdWithImages,
-#     responses={
-#         status.HTTP_404_NOT_FOUND: {
-#             "model": ErrorMessage,
-#             "description": "Bird not found",
-#         }
-#     },
-# )
-# def read_bird_images(
-#     bird_id: int,
-#     language: str = "fr",
-#     db: Session = Depends(get_db),
-# ):
-#     bird = get_bird_with_images(db, bird_id=bird_id, language=language)
-#     if bird is None:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="Bird not found",
-#         )
-#     return bird
+@router.get(
+    "/{bird_id}/images",
+    response_model=BirdWithImages,
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorMessage,
+            "description": "Bird not found",
+        }
+    },
+)
+def read_bird_images(
+    bird_id: int,
+    language: str = "fr",
+    db: Session = Depends(get_db),
+):
+    bird = get_bird_with_images(db, bird_id=bird_id, language=language)
+    if bird is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Bird not found",
+        )
+    return bird

@@ -1,45 +1,26 @@
+import pytest
+
+from fastapi.testclient import TestClient
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.database.database import Base
-from app.database.db_models import Bird, Translation, Image
+from src.main import app
+from src.dependencies import get_db
+from src.database.database import Base
+from src.database.db_models import Bird, Translation, Image
 
-SQLALCHEMY_DATABASE_URL = "sqlite://"
-# SQLALCHEMY_DATABASE_URL = "sqlite:///./test.sqlite"
+from tests.consts import SQLALCHEMY_DATABASE_URL, TEST_BIRD_1
 
-TEST_BIRD_1 = {
-    "id": 1,
-    "latin_name": "test_latin_name1",
-    "translations": [
-        {
-            "id": 1,
-            "name": "test_name1",
-            "species": "test_species1",
-            "sub_species": "test_sub_species1",
-            "details": "test_details1",
-            "language_code": "en",
-        },
-        {
-            "id": 2,
-            "name": "test_name2",
-            "species": "test_species2",
-            "sub_species": "test_sub_species2",
-            "details": "test_details2",
-            "language_code": "fr",
-        },
-    ],
-    "images": [
-        {"id": 1, "image_path": "test_image_path1"},
-        {"id": 2, "image_path": "test_image_path2"},
-    ],
-}
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
+Base.metadata.create_all(bind=engine)
+
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -51,7 +32,14 @@ def override_get_db():
         db.close()
 
 
-def init_db():
+@pytest.fixture(scope="session")
+def client():
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_testing_db(tmp_path_factory):
     session = TestingSessionLocal()
 
     bird = Bird(id=TEST_BIRD_1["id"], latin_name=TEST_BIRD_1["latin_name"])
@@ -70,15 +58,13 @@ def init_db():
         session.add(db_translation)
 
     for image in TEST_BIRD_1["images"]:
+        fp = tmp_path_factory.mktemp("images") / image["image_name"]
+        fp.touch()
         db_img = Image(
             id=image["id"],
             bird_id=TEST_BIRD_1["id"],
-            image_path=image["image_path"],
+            image_path=str(fp),
         )
         session.add(db_img)
 
     session.commit()
-
-
-Base.metadata.create_all(bind=engine)
-init_db()

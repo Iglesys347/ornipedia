@@ -1,7 +1,7 @@
 from typing import Any
 from pydantic import BaseModel, model_validator
 
-from app.database import db_models
+from src.database import db_models
 
 
 class TranslationBase(BaseModel):

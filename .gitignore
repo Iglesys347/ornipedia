@@ -8,4 +8,7 @@ __pycache__/
 Pipfile
 Pipfile.lock
 
+.coverage
+.pytest_cache/
+
 settings_local.py

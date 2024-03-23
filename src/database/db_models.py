@@ -11,7 +11,7 @@ class Bird(Base):
     latin_name = Column(String, nullable=False)
 
     translations = relationship("Translation", back_populates="bird", lazy="noload")
-    images = relationship("Image", back_populates="bird", lazy="noload")
+    images = relationship("Image", back_populates="bird", lazy="joined")
 
     def flat_dict(self):
         bird_dict = {"id": self.id, "latin_name": self.latin_name}
