@@ -43,3 +43,8 @@ class Image(BaseModel):
 
 class BirdWithImages(Bird):
     image_ids: list[int]
+
+
+class ImageWoPath(BaseModel):
+    id: int
+    bird_id: int
