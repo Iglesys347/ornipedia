@@ -11,6 +11,8 @@ DB_DEBUG = False
 
 ALLOWED_ORIGINS = []
 
+IMAGE_FOLDER = "/path/to/the/image/folder"
+
 try:
     from src.settings_local import *
 except ImportError:

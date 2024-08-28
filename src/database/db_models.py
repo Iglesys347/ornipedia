@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -38,11 +38,11 @@ class Translation(Base):
     __tablename__ = "translations"
 
     id = Column(Integer, primary_key=True, index=True)
-    bird_id = Column(Integer, ForeignKey("birds.id"))
-    language_code = Column(String)
-    name = Column(String)
-    species = Column(String)
-    sub_species = Column(String)
+    bird_id = Column(Integer, ForeignKey("birds.id"), nullable=False)
+    language_code = Column(String, nullable=False)
+    name = Column(String, nullable=False)
+    species = Column(String, nullable=False)
+    sub_species = Column(String, nullable=False)
     details = Column(String)
 
     bird = relationship("Bird", back_populates="translations")
@@ -51,7 +51,31 @@ class Translation(Base):
 class Image(Base):
     __tablename__ = "images"
     id = Column(Integer, primary_key=True, index=True)
-    bird_id = Column(Integer, ForeignKey("birds.id"))
-    image_path = Column(String)
+    bird_id = Column(Integer, ForeignKey("birds.id"), nullable=False)
+    license_id = Column(Integer, ForeignKey("image_licenses.id"), nullable=False)
+    author_id = Column(Integer, ForeignKey("image_authors.id"), nullable=False)
+    image_path = Column(String, nullable=False)
+    original_url = Column(String, nullable=False)
 
     bird = relationship("Bird", back_populates="images")
+    license = relationship("ImageLicense")
+    author = relationship("ImageAuthor")
+
+
+class ImageLicense(Base):
+    __tablename__ = "image_licenses"
+    id = Column(Integer, primary_key=True, index=True)
+    short_name = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+    link = Column(String, nullable=False)
+
+    __table_args__ = (UniqueConstraint("short_name", "link", name="img_license_uc"),)
+
+
+class ImageAuthor(Base):
+    __tablename__ = "image_authors"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    link = Column(String)
+
+    __table_args__ = (UniqueConstraint("name", "link", name="img_author_uc"),)

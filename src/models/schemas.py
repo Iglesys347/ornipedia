@@ -48,3 +48,9 @@ class BirdWithImages(Bird):
 class ImageWoPath(BaseModel):
     id: int
     bird_id: int
+
+
+class ImageInfo(ImageWoPath):
+    license_id: int
+    author_id: int
+    original_url: str

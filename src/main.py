@@ -6,12 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.database import db_models
 from src.database.database import engine
 
-from src.router import birds, images, species
+from src.router import birds, images, species, admin
 
 from src.settings import ALLOWED_ORIGINS
 
 # TODO: move this line somewhere else so it is not executed each time
-# db_models.Base.metadata.create_all(bind=engine)
+db_models.Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI(
@@ -30,3 +30,4 @@ app.add_middleware(
 app.include_router(birds.router)
 app.include_router(images.router)
 app.include_router(species.router)
+app.include_router(admin.router)
