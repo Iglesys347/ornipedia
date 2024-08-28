@@ -1,0 +1,38 @@
+/**
+ * src/styles/settings.scss
+ *
+ * Configures SASS variables and Vuetify overwrites
+ */
+
+// https://vuetifyjs.com/features/sass-variables/`
+@use 'vuetify/settings' with ( //   $color-pack: false
+    $body-font-family: "Montserrat",
+    // $body-font-family: "Nunito"
+    // $body-font-family: "Poetsen One"
+    // $body-font-family: "Outfit"
+);
+@import url("https://fonts.googleapis.com/css?family=Montserrat");
+// @import url("https://fonts.googleapis.com/css?family=Nunito");
+// @import url('https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap');
+// @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Poetsen+One&display=swap');
+
+
+// $body-font-family: "Nunito"
+
+
+// $font-size-root: 16px; // Base font size
+// $headline-font-weight: 600; // Font weight for headlines
+// $body-font-weight: 400; // Font weight for body text
+
+// $font-family: "Poetsen One", sans;
+// $font-weight: 400;
+// $font-style: normal;
+
+// $font-family: "Outfit", sans-serif;
+// $font-optical-sizing: auto;
+// $font-weight: 400;
+// $font-style: normal;
+
+$font-family: "Montserrat", sans;
+$font-weight: 400;
+$font-style: normal;
