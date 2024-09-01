@@ -9,9 +9,9 @@ from src.models.schemas import Bird
 
 
 def paginate(query: Query, page=1, per_page=10, distinct=False, str_items=False):
-    total = query.count()
     if distinct:
         query = query.distinct()
+    total = query.count()
     items = query.offset((page - 1) * per_page).limit(per_page).all()
     if str_items:
         items = [item[0] for item in items]
