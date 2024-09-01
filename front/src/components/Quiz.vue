@@ -5,7 +5,6 @@
         <v-card class="d-flex align-center justify-center text-center" height="300px">
           <v-row align="center" justify="center">
             <v-col cols="12">
-              <v-icon size="x-large" color="primary">mdi-progress-clock</v-icon>
               <v-card-title class="text-h4" prepend-icon="mdi-progress-clock">{{ $t("quiz.coming_soon.title")
                 }}</v-card-title>
               <v-card-text class="text-subtitle-1">

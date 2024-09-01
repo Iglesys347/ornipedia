@@ -4,13 +4,13 @@
         <v-spacer></v-spacer>
 
         <v-toolbar-items v-if="showToolbar">
-            <v-btn variant="text" rounded="0" href="/">{{ $t("navigation.home.title") }}</v-btn>
+            <v-btn variant="text" rounded="0" to="/">{{ $t("navigation.home.title") }}</v-btn>
             <v-divider vertical></v-divider>
-            <v-btn variant="text" rounded="0" href="/birds">{{ $t("navigation.image_gallery.title") }}</v-btn>
+            <v-btn variant="text" rounded="0" to="/birds">{{ $t("navigation.image_gallery.title") }}</v-btn>
             <v-divider vertical></v-divider>
-            <v-btn variant="text" rounded="0" href="/bird-finder">{{ $t("navigation.bird_finder.title") }}</v-btn>
+            <v-btn variant="text" rounded="0" to="/bird-finder">{{ $t("navigation.bird_finder.title") }}</v-btn>
             <v-divider vertical></v-divider>
-            <v-btn variant="text" rounded="0" href="/quiz">{{ $t("navigation.quiz.title") }}</v-btn>
+            <v-btn variant="text" rounded="0" to="/quiz">{{ $t("navigation.quiz.title") }}</v-btn>
         </v-toolbar-items>
 
         <v-spacer></v-spacer>

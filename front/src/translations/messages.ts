@@ -48,6 +48,12 @@ export default {
                 desc: "Get ready to test your knowledge about birds! Stay tuned for more updates!"
             }
         },
+        image_gallery: {
+            no_match: {
+                title: "Unable to find what you are looking for.",
+                desc: "Try to adjust the search terms or filters."
+            }
+        }
     },
     fr: {
         $vuetify: {
@@ -96,5 +102,11 @@ export default {
                 desc: "Préparez-vous à tester vos connaissances sur les oiseaux ! Restez à l'écoute des nouvelles mises à jour !"
             }
         },
+        image_gallery: {
+            no_match: {
+                title: "Impossible de trouver une image correspondant à votre recherche",
+                desc: "Essayez d'ajuster les critères de recherche ou les filtres."
+            }
+        }
     },
 }

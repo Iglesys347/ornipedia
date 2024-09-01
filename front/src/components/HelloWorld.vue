@@ -24,8 +24,8 @@
               </v-card-text>
               <v-card-actions v-if="name != 'sm' && name != 'xs'">
                 <v-spacer></v-spacer>
-                <v-btn variant="outlined" size="small" append-icon="mdi-arrow-right-thin">Go to imaga
-                  gallery</v-btn>
+                <v-btn to="/birds" variant="outlined" size="small" append-icon="mdi-arrow-right-thin">{{
+                  $t("navigation.image_gallery.title") }}</v-btn>
                 <v-spacer></v-spacer>
               </v-card-actions>
             </v-col>
@@ -38,7 +38,7 @@
             </v-col>
             <v-card-actions v-if="name == 'sm' || name == 'xs'">
               <v-spacer></v-spacer>
-              <v-btn href="/birds" variant="outlined" size="small" append-icon="mdi-arrow-right-thin">{{
+              <v-btn to="/birds" variant="outlined" size="small" append-icon="mdi-arrow-right-thin">{{
                 $t("navigation.image_gallery.title") }}</v-btn>
               <v-spacer></v-spacer>
             </v-card-actions>

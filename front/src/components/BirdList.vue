@@ -76,8 +76,8 @@
         <v-card class="d-flex align-center justify-center text-center" height="300px">
           <v-row align="center" justify="center">
             <v-col cols="12">
-              <v-card-title class="text-h5 text-wrap">Unable to find what you are looking for.</v-card-title>
-              <v-card-text class="text-subtitle-1">Try to adjust the search terms or filters.</v-card-text>
+              <v-card-title class="text-h5 text-wrap">{{ $t("image_gallery.no_match.title") }}</v-card-title>
+              <v-card-text class="text-subtitle-1">{{ $t("image_gallery.no_match.desc") }}</v-card-text>
             </v-col>
           </v-row>
         </v-card>
@@ -152,7 +152,6 @@ onMounted(async () => {
 async function updateImages() {
   const res = await getImages(appStore.locale, selectedSpecies.value, null, search.value, page.value, perPage)
   imagesIds.value = res.data.items
-  console.log(imagesIds.value)
   await imgStore.fetchImageInfo(imagesIds.value, appStore.locale)
   total.value = res.data.total
 }

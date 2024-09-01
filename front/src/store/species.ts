@@ -12,6 +12,7 @@ export const useSpeciesStore = defineStore('species', () => {
     if (!species.value[lang] || species.value[lang].length == 0) {
       await fetchSpecies(lang)
     }
+
     return species.value[lang]
   }
 

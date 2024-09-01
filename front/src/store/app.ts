@@ -1,15 +1,15 @@
 // Utilities
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { useLocale } from 'vuetify'
+import { useTheme, useLocale } from 'vuetify'
 
 export const useAppStore = defineStore('app', () => {
-  const theme = ref("light")
+  const theme = useTheme()
   function getTheme() {
-    return theme.value
+    return theme.global.name.value
   }
   function switchTheme() {
-    theme.value = theme.value == "dark" ? "light" : "dark"
+    theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
   }
 
   const showNavBar = ref(false)
