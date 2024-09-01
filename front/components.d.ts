@@ -9,8 +9,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     BirdFinder: typeof import('./src/components/BirdFinder.vue')['default']
     BirdList: typeof import('./src/components/BirdList.vue')['default']
-    BirdList2: typeof import('./src/components/BirdList2.vue')['default']
-    copy: typeof import('./src/components/Quiz copy.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     Quiz: typeof import('./src/components/Quiz.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
