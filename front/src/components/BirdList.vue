@@ -21,12 +21,11 @@
 
           <v-card-text>
             <v-autocomplete v-model="selectedSpecies" clearable :items="species" :label="$t('speciesSelect')"
-              @update:model-value="updateImages()" density="compact">
-              Species
+              @update:model-value="updateSubSpecies()" density="compact">
             </v-autocomplete>
-            <v-autocomplete v-model="selectedSpecies" clearable :items="species" :label="$t('speciesSelect')"
-              @update:model-value="updateImages()" density="compact">
-              Species
+            <v-autocomplete :disabled="subSpecies.length == 0" v-model="selectedSubSpecies" clearable
+              :items="subSpecies" :label="$t('subSpeciesSelect')" @update:model-value="updateImages()"
+              density="compact">
             </v-autocomplete>
           </v-card-text>
 
@@ -97,7 +96,13 @@
       <v-card-text class="pt-0">
         <span class="text-subtitle-2 font-italic"> {{ getImgBirdLatinName(carouselIndex) }}</span>
       </v-card-text>
-      <v-card-subtitle>Copyright infos</v-card-subtitle>
+      <v-card-subtitle>
+        <v-icon>mdi-account</v-icon>
+        <a :href="getImgAuthorLink(carouselIndex)">{{ getImgAuthorName(carouselIndex) }}</a>
+        <v-spacer></v-spacer>
+        <v-icon>mdi-copyright</v-icon>
+        <a :href="getImgCopyrightLink(carouselIndex)">{{ getImgCopyrightName(carouselIndex) }}</a>
+      </v-card-subtitle>
     </v-card>
   </v-dialog>
 
@@ -127,6 +132,7 @@ function closeCarousel() {
 }
 
 const selectedSpecies: Ref<string | null> = ref(null)
+const selectedSubSpecies: Ref<string | null> = ref(null)
 const search: Ref<string> = ref("")
 
 const page = ref(1)
@@ -149,6 +155,15 @@ onMounted(async () => {
   species.value = await speciesStore.getSpecies(appStore.locale)
 })
 
+async function updateSubSpecies() {
+  selectedSubSpecies.value = null
+  subSpecies.value = []
+  if (selectedSpecies.value != null) {
+    subSpecies.value = await speciesStore.getSubSpecies(appStore.locale, selectedSpecies.value)
+  }
+  await updateImages()
+}
+
 async function updateImages() {
   const res = await getImages(appStore.locale, selectedSpecies.value, null, search.value, page.value, perPage)
   imagesIds.value = res.data.items
@@ -157,11 +172,27 @@ async function updateImages() {
 }
 function getImgBirdName(imgId: number) {
   const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
-  return birdInfo?.name
+  return birdInfo?.bird.latin_name
 }
 function getImgBirdLatinName(imgId: number) {
   const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
-  return birdInfo?.latin_name
+  return birdInfo?.bird.latin_name
+}
+function getImgCopyrightName(imgId: number) {
+  const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
+  return birdInfo?.license.short_name
+}
+function getImgCopyrightLink(imgId: number) {
+  const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
+  return birdInfo?.license.link
+}
+function getImgAuthorName(imgId: number) {
+  const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
+  return birdInfo?.author.name
+}
+function getImgAuthorLink(imgId: number) {
+  const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
+  return birdInfo?.author.link
 }
 
 const locale = computed(() => {
@@ -169,12 +200,14 @@ const locale = computed(() => {
 })
 watch(locale, async (newLocale: string, oldLocale: string) => {
   if (newLocale != oldLocale) {
-    await imgStore.fetchImageInfo(imagesIds.value, newLocale)
-    species.value = await speciesStore.getSpecies(newLocale)
+    page.value = 1
+    await updateImages()
+    species.value = await speciesStore.getSpecies(appStore.locale)
   }
 })
 
 const species: Ref<string[]> = ref([])
+const subSpecies: Ref<string[]> = ref([])
 
 
 const filterMenu = ref(false)

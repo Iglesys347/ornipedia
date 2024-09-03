@@ -12,8 +12,8 @@ export function getImageUrl(imgId: number) {
     return `${instance.getUri()}/images/${imgId}`
 }
 
-export function getImageBird(imgId: number, lang: string) {
-    return instance.get(`/images/${imgId}/bird`, { params: { language: lang } })
+export function getImageInfo(imgId: number, lang: string) {
+    return instance.get(`/images/${imgId}/info`, { params: { language: lang } })
 }
 
 export function getRandomImage(species: string | null = null, subSpecies: string | null = null) {

@@ -9,6 +9,7 @@ export default {
         subtitle: "The bird encyclopedia",
 
         speciesSelect: "Filter by species",
+        subSpeciesSelect: "Filter by sub species",
         search: "Search by name",
 
         settings: "Settings",
@@ -63,6 +64,7 @@ export default {
         subtitle: "L'encyclopédie ornithologique",
 
         speciesSelect: "Filtrer par espèce",
+        subSpeciesSelect: "Filtrer par sous espèce",
         search: "Recherche par nom",
 
         settings: "Paramètres",
