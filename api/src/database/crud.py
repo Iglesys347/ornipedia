@@ -108,20 +108,7 @@ def get_image_bird(db: Session, img_id: int, language: str = "fr"):
 
 
 def get_image_info(db: Session, img_id: int, language: str = "fr"):
-    res = (
-        db.query(db_models.Image)
-        .filter(db_models.Image.id == img_id)
-        .filter(db_models.Translation.language_code == language)
-        .first()
-        # db.query(db_models.Bird)
-        # .join(db_models.Translation)
-        # .options(contains_eager(db_models.Bird.translations))
-        # .join(db_models.Image)
-        # .filter(db_models.Translation.language_code == language)
-        # .filter(db_models.Image.id == img_id)
-        # .first()
-    )
-    print(res.__dict__)
+    res = db.query(db_models.Image).filter(db_models.Image.id == img_id).one()
     return res
 
 

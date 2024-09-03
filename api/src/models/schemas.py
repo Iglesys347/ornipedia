@@ -50,7 +50,35 @@ class ImageWoPath(BaseModel):
     bird_id: int
 
 
-class ImageInfo(ImageWoPath):
-    license_id: int
-    author_id: int
+class LicenseInfo(BaseModel):
+    short_name: str
+    full_name: str
+    link: str
+
+
+class AuthorInfo(BaseModel):
+    name: str
+    link: str
+
+
+class ImageInfo(BaseModel):
+    @model_validator(mode="before")
+    @classmethod
+    def convert_db_bird(cls, data: Any) -> Any:
+        if isinstance(data, db_models.Image):
+            d = {
+                "id": data.id,
+                "bird": data.bird.flat_dict(),
+                "license": data.license,
+                "author": data.author,
+                "original_url": data.original_url,
+            }
+            return d
+        return data
+
+    id: int
+
+    license: LicenseInfo
+    author: AuthorInfo
+    bird: Bird
     original_url: str

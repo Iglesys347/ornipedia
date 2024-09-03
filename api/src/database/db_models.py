@@ -10,7 +10,7 @@ class Bird(Base):
     id = Column(Integer, primary_key=True, index=True)
     latin_name = Column(String, nullable=False)
 
-    translations = relationship("Translation", back_populates="bird", lazy="noload")
+    translations = relationship("Translation", back_populates="bird", lazy="joined")
     images = relationship("Image", back_populates="bird", lazy="joined")
 
     def flat_dict(self):
@@ -57,9 +57,9 @@ class Image(Base):
     image_path = Column(String, nullable=False)
     original_url = Column(String, nullable=False)
 
-    bird = relationship("Bird", back_populates="images")
-    license = relationship("ImageLicense")
-    author = relationship("ImageAuthor")
+    bird = relationship("Bird", back_populates="images", lazy="joined")
+    license = relationship("ImageLicense", back_populates="images", lazy="joined")
+    author = relationship("ImageAuthor", back_populates="images", lazy="joined")
 
 
 class ImageLicense(Base):
@@ -71,6 +71,8 @@ class ImageLicense(Base):
 
     __table_args__ = (UniqueConstraint("short_name", "link", name="img_license_uc"),)
 
+    images = relationship("Image", back_populates="license", lazy="joined")
+
 
 class ImageAuthor(Base):
     __tablename__ = "image_authors"
@@ -79,3 +81,5 @@ class ImageAuthor(Base):
     link = Column(String)
 
     __table_args__ = (UniqueConstraint("name", "link", name="img_author_uc"),)
+
+    images = relationship("Image", back_populates="author", lazy="joined")
