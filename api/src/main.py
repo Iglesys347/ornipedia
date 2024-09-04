@@ -30,4 +30,4 @@ app.add_middleware(
 app.include_router(birds.router)
 app.include_router(images.router)
 app.include_router(species.router)
-app.include_router(admin.router)
+# app.include_router(admin.router)
