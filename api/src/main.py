@@ -6,7 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.database import db_models
 from src.database.database import engine
 
-from src.router import birds, images, species, admin
+from src.router import birds, images, species
+
+# from src.router import admin
 
 from src.settings import ALLOWED_ORIGINS
 
