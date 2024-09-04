@@ -9,7 +9,7 @@ from sqlalchemy.pool import StaticPool
 from src.main import app
 from src.dependencies import get_db
 from src.database.database import Base
-from src.database.db_models import Bird, Translation, Image
+from src.database.db_models import Bird, Translation, Image, ImageAuthor, ImageLicense
 
 from tests.consts import SQLALCHEMY_DATABASE_URL, TEST_BIRD_1
 
@@ -64,7 +64,24 @@ def setup_testing_db(tmp_path_factory):
             id=image["id"],
             bird_id=TEST_BIRD_1["id"],
             image_path=str(fp),
+            original_url=image["original_url"],
+            author_id=image["author"]["id"],
+            license_id=image["license"]["id"],
         )
         session.add(db_img)
+
+        db_img_author = ImageAuthor(
+            id=image["author"]["id"],
+            name=image["author"]["name"],
+            link=image["author"]["link"],
+        )
+        session.add(db_img_author)
+        db_img_license = ImageLicense(
+            id=image["license"]["id"],
+            short_name=image["license"]["short_name"],
+            full_name=image["license"]["full_name"],
+            link=image["license"]["link"],
+        )
+        session.add(db_img_license)
 
     session.commit()

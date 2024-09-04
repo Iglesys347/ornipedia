@@ -22,8 +22,38 @@ TEST_BIRD_1 = {
         },
     ],
     "images": [
-        {"id": 1, "image_name": "1.png"},
-        {"id": 2, "image_name": "2.jpg"},
+        {
+            "id": 1,
+            "image_name": "1.png",
+            "original_url": "url1",
+            "author": {
+                "id": 1,
+                "name": "author1",
+                "link": "link1",
+            },
+            "license": {
+                "id": 1,
+                "short_name": "short_name1",
+                "full_name": "full_name1",
+                "link": "link1",
+            },
+        },
+        {
+            "id": 2,
+            "image_name": "2.jpg",
+            "original_url": "url2",
+            "author": {
+                "id": 2,
+                "name": "author2",
+                "link": "link2",
+            },
+            "license": {
+                "id": 2,
+                "short_name": "short_name2",
+                "full_name": "full_name2",
+                "link": "link2",
+            },
+        },
     ],
 }
 
