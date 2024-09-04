@@ -13,7 +13,7 @@ from src.router import birds, images, species
 from src.settings import ALLOWED_ORIGINS
 
 # TODO: move this line somewhere else so it is not executed each time
-db_models.Base.metadata.create_all(bind=engine)
+# db_models.Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI(
