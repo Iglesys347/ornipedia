@@ -1,5 +1,3 @@
-import { ClassLikeDeclarationBase } from "typescript";
-
 type Bird = {
     id: number;
     name: string;

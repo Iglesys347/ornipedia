@@ -97,10 +97,8 @@
         <span class="text-subtitle-2 font-italic"> {{ getImgBirdLatinName(carouselIndex) }}</span>
       </v-card-text>
       <v-card-subtitle>
-        <v-icon>mdi-account</v-icon>
-        <a :href="getImgAuthorLink(carouselIndex)">{{ getImgAuthorName(carouselIndex) }}</a>
-        <v-spacer></v-spacer>
-        <v-icon>mdi-copyright</v-icon>
+        <a :href="getImgAuthorLink(carouselIndex)" target="_blank">{{ getImgAuthorName(carouselIndex) }}</a>
+        |
         <a :href="getImgCopyrightLink(carouselIndex)">{{ getImgCopyrightName(carouselIndex) }}</a>
       </v-card-subtitle>
     </v-card>
@@ -172,7 +170,7 @@ async function updateImages() {
 }
 function getImgBirdName(imgId: number) {
   const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
-  return birdInfo?.bird.latin_name
+  return capitalizeFirstLetter(birdInfo!.bird.name)
 }
 function getImgBirdLatinName(imgId: number) {
   const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
@@ -225,6 +223,10 @@ const btnSize = computed(() => {
     default: return undefined
   }
 })
+
+function capitalizeFirstLetter(str: string): string {
+  return str[0].toUpperCase() + str.slice(1);
+}
 </script>
 
 <style scoped>
