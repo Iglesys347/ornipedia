@@ -13,19 +13,19 @@
 
         <v-card min-width="300" elevation="1">
           <v-list>
-            <v-list-item title="Filters">
+            <v-list-item :title="$t('filter')">
             </v-list-item>
           </v-list>
 
           <v-divider></v-divider>
 
           <v-card-text>
-            <v-autocomplete v-model="selectedSpecies" clearable :items="species" :label="$t('speciesSelect')"
-              @update:model-value="updateSubSpecies()" density="compact">
+            <v-autocomplete v-model="selectedSpecies" clearable :items="species" item-title="value" item-value="key"
+              :label="$t('speciesSelect')" @update:model-value="updateSubSpecies()" density="compact">
             </v-autocomplete>
             <v-autocomplete :disabled="subSpecies.length == 0" v-model="selectedSubSpecies" clearable
-              :items="subSpecies" :label="$t('subSpeciesSelect')" @update:model-value="updateImages()"
-              density="compact">
+              :items="subSpecies" item-title="value" item-value="key" :label="$t('subSpeciesSelect')"
+              @update:model-value="updateImages()" density="compact">
             </v-autocomplete>
           </v-card-text>
 
@@ -150,20 +150,22 @@ onMounted(async () => {
 
   await updateImages()
 
-  species.value = await speciesStore.getSpecies(appStore.locale)
+  let spcs = await speciesStore.getSpecies(appStore.locale)
+  species.value = spcs.map(s => ({ key: s, value: capitalizeFirstLetter(s) }))
 })
 
 async function updateSubSpecies() {
   selectedSubSpecies.value = null
   subSpecies.value = []
   if (selectedSpecies.value != null) {
-    subSpecies.value = await speciesStore.getSubSpecies(appStore.locale, selectedSpecies.value)
+    let spcs = await speciesStore.getSubSpecies(appStore.locale, selectedSpecies.value)
+    subSpecies.value = spcs.map(s => ({ key: s, value: capitalizeFirstLetter(s) }))
   }
   await updateImages()
 }
 
 async function updateImages() {
-  const res = await getImages(appStore.locale, selectedSpecies.value, null, search.value, page.value, perPage)
+  const res = await getImages(appStore.locale, selectedSpecies.value, selectedSubSpecies.value, search.value, page.value, perPage)
   imagesIds.value = res.data.items
   await imgStore.fetchImageInfo(imagesIds.value, appStore.locale)
   total.value = res.data.total
@@ -200,12 +202,13 @@ watch(locale, async (newLocale: string, oldLocale: string) => {
   if (newLocale != oldLocale) {
     page.value = 1
     await updateImages()
-    species.value = await speciesStore.getSpecies(appStore.locale)
+    let spcs = await speciesStore.getSpecies(appStore.locale)
+    species.value = spcs.map(s => ({ key: s, value: capitalizeFirstLetter(s) }))
   }
 })
 
-const species: Ref<string[]> = ref([])
-const subSpecies: Ref<string[]> = ref([])
+const species: Ref<{ key: string, value: string }[]> = ref([])
+const subSpecies: Ref<{ key: string, value: string }[]> = ref([])
 
 
 const filterMenu = ref(false)
