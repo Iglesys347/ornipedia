@@ -3,7 +3,7 @@
     <v-spacer></v-spacer>
     <v-col cols="10" md="3" sm="4" xs="10">
       <v-text-field v-model="search" class="mt-2" append-inner-icon="mdi-magnify" :label="$t('search')"
-        @update:model-value="updateImages()" hide-details :density="density" clearable></v-text-field>
+        @update:model-value="updateImages(true)" hide-details :density="density" clearable></v-text-field>
     </v-col>
     <v-col cols="2" md="1">
       <v-menu v-model="filterMenu" :close-on-content-click="false" location="end">
@@ -45,7 +45,7 @@
     <v-row class="mx-4">
       <v-col v-for="i in imagesIds" :key="i" class="d-flex child-flex" cols="12" sm="3">
         <v-hover v-slot="{ isHovering, props }">
-          <v-img :src="getImageUrl(i)" aspect-ratio="16/9" v-bind="props" class="cursor-pointer"
+          <v-img :src="getImageUrl(i)" aspect-ratio="16/9" cover height="200px" v-bind="props" class="cursor-pointer"
             @click="showCarousel(i)" rounded="xl">
             <v-slide-y-reverse-transition>
               <v-card v-if="isHovering" class="d-flex flex-column bg-transparent" elevation="0" rounded="0"
@@ -164,7 +164,11 @@ async function updateSubSpecies() {
   await updateImages()
 }
 
-async function updateImages() {
+async function updateImages(resetPages = false) {
+  if (resetPages) {
+    page.value = 1
+  }
+  window.scrollTo(0, 0)
   const res = await getImages(appStore.locale, selectedSpecies.value, selectedSubSpecies.value, search.value, page.value, perPage)
   imagesIds.value = res.data.items
   await imgStore.fetchImageInfo(imagesIds.value, appStore.locale)

@@ -31,8 +31,8 @@
             </v-col>
             <v-col cols="12" md="6">
               <v-carousel show-arrows="hover" cycle hide-delimiter-background height="280">
-                <v-carousel-item v-for=" i in [1, 2]" :key="i">
-                  <v-img :src="getImageUrl(i)" rounded="0"></v-img>
+                <v-carousel-item v-for=" i in [1, 2, 3, 4, 5]" :key="i">
+                  <v-img :src="getImageUrl(i)" rounded="xl" cover height="280"></v-img>
                 </v-carousel-item>
               </v-carousel>
             </v-col>
