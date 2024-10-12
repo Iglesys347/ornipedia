@@ -1,0 +1,5 @@
+configs:
+  - { conf_name: "{{ inventory_hostname }}", conf_template: "nginx.conf.j2" }
+
+static_folder: "{{ remote_build_dir }}/dist"
+socket_server: "http://{{ bind_server_socket }}"

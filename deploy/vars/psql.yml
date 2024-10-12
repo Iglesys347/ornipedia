@@ -1,0 +1,5 @@
+psql_user: "{{ vault_psql_user }}"
+psql_password: "{{ vault_psql_password }}"
+psql_host: "{{ vault_psql_host }}"
+psql_port: "{{ vault_psql_port }}"
+psql_db: "{{ vault_psql_db }}"

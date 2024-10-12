@@ -1,0 +1,9 @@
+# playbook to deploy the whole application
+- name: Certbot
+  ansible.builtin.import_playbook: certbot.yml
+- name: API
+  ansible.builtin.import_playbook: api.yml
+- name: Front
+  ansible.builtin.import_playbook: front.yml
+- name: NGINX
+  ansible.builtin.import_playbook: nginx.yml

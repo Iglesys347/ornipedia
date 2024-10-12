@@ -1,0 +1,15 @@
+- name: Check that "local_build_dir" exists
+  delegate_to: localhost
+  ansible.builtin.stat:
+    path: "{{ static_vue_local_build_dir }}"
+  register: reg_build_dir
+  failed_when: not reg_build_dir.stat.exists or not reg_build_dir.stat.isdir
+
+- name: Check that "local_build_dir" is not empty
+  delegate_to: localhost
+  ansible.builtin.find:
+    paths: "{{ static_vue_local_build_dir }}"
+    file_type: any
+    hidden: true
+  register: files_found
+  failed_when: files_found.matched < 0

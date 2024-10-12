@@ -1,0 +1,13 @@
+project_dir: "{{ ansible_env.HOME }}/ornipedia/api"
+
+# server socket to bind (see gunicorn --bind option for accepted values)
+# by default, we use a unix socket
+bind_server_socket: "unix:/run/gunicorn/gunicorn.sock"
+# number of threads
+n_threads: 5
+# number of workers
+n_workers: 3
+# destination of the service file
+gunicorn_service_name: "gunicorn-ornipedia"
+
+api_app: "src.main:app"

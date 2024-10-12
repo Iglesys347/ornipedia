@@ -1,0 +1,10 @@
+# playbook to deploy the certbot certificate
+- name: Certbot
+  hosts:
+    - ornipedia
+  vars_files:
+    - certbot.yml
+    - vault.yml
+  roles:
+    - certbot
+    - certbot_autorenew

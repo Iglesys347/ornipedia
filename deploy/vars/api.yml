@@ -1,0 +1,15 @@
+local_api_dir: "../api"
+remote_api_dir: "{{ ansible_env.HOME }}/ornipedia/api"
+
+local_api_src_dir: "{{ local_api_dir }}/src/"
+remote_api_src_dir: "{{ remote_api_dir }}/src"
+
+local_requirements: "{{ local_api_dir }}/requirements/requirements.txt"
+requirements_path: "{{ remote_api_dir }}/requirements.txt"
+
+venv_path: "{{ remote_api_dir }}/venv"
+
+settings_template: "settings_local.py.j2"
+settings_dest: "{{ remote_api_src_dir }}/settings_local.py"
+
+img_folder: "{{ ansible_env.HOME }}/ornipedia/images"

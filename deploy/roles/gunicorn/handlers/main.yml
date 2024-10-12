@@ -1,0 +1,6 @@
+- name: Reload Gunicorn
+  become: true
+  ansible.builtin.service:
+    name: "{{ gunicorn_service_name }}"
+    state: reloaded
+    daemon_reload: true

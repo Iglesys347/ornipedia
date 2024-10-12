@@ -1,0 +1,11 @@
+- name: Create "remote_build_dir" on remote machine
+  ansible.builtin.file:
+    path: "{{ static_vue_remote_build_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Copy local build files to remote
+  ansible.builtin.copy:
+    src: "{{ static_vue_local_build_dir }}"
+    dest: "{{ static_vue_remote_build_dir }}"
+    mode: "0644"

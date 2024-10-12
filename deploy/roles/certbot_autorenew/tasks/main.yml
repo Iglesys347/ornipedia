@@ -1,0 +1,32 @@
+- name: Copy template service file
+  become: true
+  ansible.builtin.template:
+    src: service.j2
+    dest: /usr/lib/systemd/system/certbot.service
+    mode: "0644"
+
+- name: Copy template timer file
+  become: true
+  ansible.builtin.template:
+    src: timer.j2
+    dest: /usr/lib/systemd/system/certbot.timer
+    mode: "0644"
+
+- name: Daemon reload
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Make sure certbot service is enabled and running
+  become: true
+  ansible.builtin.systemd:
+    name: certbot.service
+    state: started
+    enabled: true
+
+- name: Make sure certbot timer is enabled and running
+  become: true
+  ansible.builtin.systemd:
+    name: certbot.timer
+    state: started
+    enabled: true

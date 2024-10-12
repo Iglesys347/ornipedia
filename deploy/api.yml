@@ -1,0 +1,12 @@
+# playbook to deploy the API
+- name: API
+  hosts:
+    - ornipedia
+  vars_files:
+    - api.yml
+    - gunicorn.yml
+    - psql.yml
+    - vault.yml
+  roles:
+    - python
+    - gunicorn

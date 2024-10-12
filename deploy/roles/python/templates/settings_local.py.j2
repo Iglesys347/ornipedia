@@ -1,0 +1,17 @@
+DEV = False
+
+PSQL_USER = "{{ psql_user }}"
+PSQL_PASSWORD = "{{ psql_password }}"
+PSQL_HOST = "{{ psql_host }}"
+PSQL_PORT = {{ psql_port }}
+PSQL_DB = "{{ psql_db }}"
+
+DB_URL = f"postgresql://{PSQL_USER}:{PSQL_PASSWORD}@{PSQL_HOST}:{PSQL_PORT}/{PSQL_DB}"
+
+DB_DEBUG = False
+
+ALLOWED_ORIGINS = [
+    "{{ inventory_hostname }}"
+]
+
+IMAGE_FOLDER = "{{ img_folder }}"

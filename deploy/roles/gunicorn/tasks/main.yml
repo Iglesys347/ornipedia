@@ -1,0 +1,28 @@
+# tasks for gunicorn role
+
+- name: Install Gunicorn & Uvicorn in virtualenv
+  ansible.builtin.pip:
+    name: "{{ item }}"
+    virtualenv: "{{ venv_path }}"
+  with_items:
+    - uvicorn[standard]
+    - gunicorn
+
+- name: Copy Gunicorn systemd unit
+  become: true
+  ansible.builtin.template:
+    src: "gunicorn_service.j2"
+    dest: "/etc/systemd/system/{{ gunicorn_service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload Gunicorn
+
+- name: Make sure Gunicorn is enabled and running
+  become: true
+  ansible.builtin.service:
+    name: "{{ gunicorn_service_name }}.service"
+    state: started
+    enabled: true
+    daemon_reload: true

@@ -1,0 +1,5 @@
+- name: Check local build files
+  ansible.builtin.import_tasks: "check-local-build.yml"
+
+- name: Copy built files
+  ansible.builtin.import_tasks: "copy-local-build.yml"

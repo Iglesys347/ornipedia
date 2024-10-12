@@ -1,0 +1,2 @@
+certbot_do_token: "{{ vault_do_token }}"
+certbot_email: "{{ vault_certbot_email }}"

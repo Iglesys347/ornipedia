@@ -1,0 +1,7 @@
+certbot_do_token: ""
+
+certbot_do_conf_dir: "{{ ansible_env.HOME }}/.do"
+certbot_do_conf_path: "{{ do_conf_dir }}/digital-ocean.ini"
+
+certbot_domain_name: "{{ inventory_hostname }}"
+certbot_email: ""

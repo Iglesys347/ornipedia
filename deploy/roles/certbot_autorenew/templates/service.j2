@@ -1,0 +1,10 @@
+[Unit]
+Description=Certbot
+Documentation=file:///usr/share/doc/python-certbot-doc/html/index.html
+Documentation=https://certbot.eff.org/docs
+[Service]
+User=root
+Group=root
+Type=oneshot
+ExecStart=certbot -q renew
+PrivateTmp=true

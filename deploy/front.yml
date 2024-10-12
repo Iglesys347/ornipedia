@@ -1,0 +1,9 @@
+# playbook to deploy the front (static Vue)
+- name: Front
+  hosts:
+    - ornipedia
+  vars_files:
+    - front.yml
+    - vault.yml
+  roles:
+    - static_vue

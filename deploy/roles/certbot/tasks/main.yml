@@ -1,0 +1,60 @@
+- name: Install python3-certbot & python3-certbot-dns-digitalocean
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - python3-certbot
+      - python3-certbot-dns-digitalocean
+    state: present
+
+- name: Check that the plugin dns-digitalocean is installed
+  become: true
+  ansible.builtin.command: certbot plugins
+  register: result
+  changed_when: false
+  failed_when:
+    - '"dns-digitalocean" not in result.stdout'
+
+- name: Create Digital Ocean config directory
+  ansible.builtin.file:
+    path: "{{ cerbot_do_conf_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Copy template Digital Ocean configuration file
+  become: true
+  ansible.builtin.template:
+    src: digital-ocean.ini.j2
+    dest: "{{ certbot_do_conf_path }}"
+    mode: "0644"
+
+- name: Dry run certbot
+  become: true
+  ansible.builtin.command: >
+    certbot certonly
+    --dns-digitalocean
+    --dns-digitalocean-credentials {{ certbot_do_conf_path }}
+    -d {{ certbot_domain_name }}
+    --non-interactive
+    --email {{ cerbot_email }}
+    --agree-tos
+    --dry-run
+  register: dry_run_result
+  changed_when: false
+  failed_when:
+    - '"The dry run was successful" not in dry_run_result.stdout'
+
+- name: Run certbot
+  become: true
+  ansible.builtin.command: >
+    certbot certonly
+    --dns-digitalocean
+    --dns-digitalocean-credentials {{ cerbot_do_conf_path }}
+    -d {{ certbot_domain_name }}
+    --non-interactive
+    --email {{ certbot_email }}
+    --agree-tos
+  register: run_result
+  changed_when:
+    - '"Certificate not yet due for renewal; no action taken." not in run_result.stdout'
+  failed_when:
+    - '"Error" in run_result.stderr or "Unable" in run_result.stderr'

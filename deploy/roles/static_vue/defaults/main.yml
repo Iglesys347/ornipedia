@@ -1,0 +1,7 @@
+# Local path of the vue app (should be containing the source code and package.json)
+static_vue_app_path: "../front"
+
+# Local path of the built application
+static_vue_local_build_dir: "{{ static_vue_app_path }}/dist"
+# Remote path of the built application
+static_vue_remote_build_dir: "{{ ansible_env.PATH }}"

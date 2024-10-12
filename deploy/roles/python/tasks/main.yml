@@ -1,0 +1,14 @@
+- name: Copy api files
+  ansible.builtin.import_tasks: "copy-api.yml"
+
+- name: Setup python virtualenv
+  ansible.builtin.import_tasks: "venv.yml"
+
+- name: Copy local settings
+  ansible.builtin.template:
+    src: "{{ settings_template }}"
+    dest: "{{ settings_dest }}"
+    mode: "0644"
+  notify:
+    - Reload Gunicorn
+    - Reload NGINX

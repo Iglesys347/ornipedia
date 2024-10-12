@@ -1,0 +1,5 @@
+static_vue_app_path: "../front"
+
+static_vue_local_build_dir: "{{ static_vue_app_path }}/dist"
+
+static_vue_remote_build_dir: "{{ ansible_env.HOME }}/ornipedia/front"

@@ -1,0 +1,19 @@
+- name: Install python3-virtualenv
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - python3-virtualenv
+    state: present
+
+- name: Copy requirements.txt
+  ansible.builtin.copy:
+    src: "{{ local_requirements }}"
+    dest: "{{ requirements_path }}"
+    mode: "0644"
+
+- name: Install virtualenv requirements
+  ansible.builtin.pip:
+    requirements: "{{ requirements_path }}"
+    virtualenv: "{{ venv_path }}"
+  notify:
+    - Reload Gunicorn

@@ -1,0 +1,11 @@
+# playbook to deploy NGINX
+- name: NGINX
+  hosts:
+    - ornipedia
+  vars_files:
+    - gunicorn.yml
+    - front.yml
+    - nginx.yml
+    - vault.yml
+  roles:
+    - nginx

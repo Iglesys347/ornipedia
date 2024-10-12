@@ -1,0 +1,8 @@
+vault_do_token: "secret_token"
+vault_certbot_email: "test@example.com"
+
+vault_psql_user: "user"
+vault_psql_password: "password"
+vault_psql_host: "my.datanase.host.com"
+vault_psql_port: 5432
+vault_psql_db: "db_name"

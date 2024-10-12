@@ -1,0 +1,58 @@
+# Tasks for nginx role ;
+
+- name: Install nginx
+  become: true
+  ansible.builtin.apt:
+    name:
+      - nginx
+
+- name: Copy required files for certbot
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+  with_items:
+    - { src: "options-ssl-nginx.conf", dest: "/etc/letsencrypt/options-ssl-nginx.conf"}
+    - { src: "ssl-dhparams.pem", dest: "/etc/letsencrypt/ssl-dhparams.pem" }
+
+- name: Remove default NGINX conf file
+  become: true
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Copy Nginx conf templates
+  become: true
+  ansible.builtin.template:
+    src: "{{ item.conf_template }}"
+    dest: "/etc/nginx/sites-available/{{ item.conf_name }}"
+    mode: "0644"
+  loop: "{{ configs }}"
+  notify:
+    - Reload NGINX
+
+- name: Enable new site
+  become: true
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ item.conf_name }}"
+    dest: "/etc/nginx/sites-enabled/{{ item.conf_name }}"
+    state: link
+  loop: "{{ configs }}"
+  notify: Reload NGINX
+
+- name: Make sure nginx is enabled and running
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Create a certbot hook to reload nginx on certificate renewal
+  become: true
+  ansible.builtin.copy:
+    src: reload-nginx.sh
+    dest: /etc/letsencrypt/renewal-hooks/deploy/reload-nginx.sh
+    owner: root
+    group: root
+    mode: "0744"

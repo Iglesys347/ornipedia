@@ -1,0 +1,24 @@
+- name: Check for local gitted files
+  ansible.builtin.shell: git ls-files
+  args:
+    chdir: "{{ local_api_src_dir }}"
+  delegate_to: localhost
+  register: gitted_files
+  changed_when: false
+  # for the moment, the ansible git module doesn't have an option to perform git-ls, so we ignore the ansible-lint warnings
+  # noqa: command-instead-of-module
+  # noqa: command-instead-of-shell
+
+- name: Ensure all necessary directories exist on the remote server
+  ansible.builtin.file:
+    path: "{{ remote_api_src_dir }}/{{ item | dirname }}"
+    state: directory
+    mode: "0755"
+  with_items: "{{ gitted_files.stdout_lines }}"
+
+- name: Copy gitted files to the remote server
+  ansible.builtin.copy:
+    src: "{{ local_api_src_dir }}/{{ item }}"
+    dest: "{{ remote_api_src_dir }}/{{ item }}"
+    mode: "0644"
+  with_items: "{{ gitted_files.stdout_lines }}"
