@@ -26,14 +26,18 @@ jobs:
           chmod 600 private_key.pem
       - name: Create and populate inventory file
         working-directory: ./deploy
+        env:
+          ANSIBLE_INVENTORY:  ${{ secrets.ANSIBLE_INVENTORY }}
         run: |
           touch inventory.ini
-          echo ${{ secrets.ANSIBLE_INVENTORY }} >> inventory.ini
+          echo $ANSIBLE_INVENTORY >> inventory.ini
       - name: Create and populate vault.yml vars file
         working-directory: ./deploy
+        env:
+          ANSIBLE_VAULT: ${{ secrets.ANSIBLE_VAULT }}
         run: |
           touch vars/vault.yml
-          echo ${{ secrets.ANSIBLE_VAULT }} >> vars/vault.yml
+          echo $ANSIBLE_VAULT >> vars/vault.yml
 
       - name: Setup
         uses: actions/setup-node@v4
