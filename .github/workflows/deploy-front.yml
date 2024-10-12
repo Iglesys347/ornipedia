@@ -1,0 +1,56 @@
+name: Deploy Front with Ansible
+
+on:
+  pull_request:
+    paths:
+      - 'front/**'
+    branches:
+      - main
+    types: [closed]
+
+jobs:
+  deploy:
+    name: Deploy Ansible Playbook
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up SSH
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+      - name: Create and populate inventory file
+        working-directory: ./deploy
+        run: |
+          touch inventory.ini
+          echo ${{ secrets.ANSIBLE_INVENTORY }} >> inventory.ini
+      - name: Create and populate vault.yml vars file
+        working-directory: ./deploy
+        run: |
+          touch vars/vault.yml
+          echo ${{ secrets.ANSIBLE_VAULT }} >> vars/vault.yml
+
+      - name: Setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - run: npm run build:prod
+          
+      - name: Install Ansible
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Run Ansible Playbook
+        working-directory: ./deploy
+        env:
+          BECOME_PASSWORD_FILE: ${{ secrets.ANSIBLE_BECOME_PASSWORD }}
+          ANSIBLE_HOST_KEY_CHECKING: False
+        run: |
+          ansible-playbook front.yml -i inventory.ini --private-key private_key.pem
