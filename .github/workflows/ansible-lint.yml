@@ -1,0 +1,15 @@
+name: Lint Ansible
+
+on:
+  push:
+    paths:
+      - 'deploy/**'
+  pull_request:
+    paths:
+      - 'deploy/**'
+
+jobs:
+  ansible-lint:
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
+    with:
+      args: '-p deploy'
