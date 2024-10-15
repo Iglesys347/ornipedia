@@ -1,12 +1,14 @@
 name: Deploy Front with Ansible
 
 on:
-  pull_request:
-    paths:
-      - 'front/**'
-    branches:
-      - main
-    types: [closed]
+  # temporary for testing
+  workflow_dispatch
+  # pull_request:
+  #   paths:
+  #     - 'front/**'
+  #   branches:
+  #     - main
+  #   types: [closed]
 
 jobs:
   deploy:
