@@ -8,7 +8,7 @@ from src.dependencies import get_db
 from src.models.schemas import Bird, BirdWithImages
 from src.models.responses import PaginatedResponse, ErrorMessage
 
-from src.database.crud import get_bird, get_birds, get_bird_with_images
+from src.database.sql.crud import get_bird, get_birds, get_bird_with_images
 
 router = APIRouter(
     prefix="/birds",

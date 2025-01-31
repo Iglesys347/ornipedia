@@ -9,7 +9,7 @@ from src.dependencies import get_db
 from src.models.responses import ErrorMessage, PaginatedResponse
 from src.models.schemas import Bird, ImageWoPath, ImageInfo
 
-from src.database.crud import (
+from src.database.sql.crud import (
     get_image,
     get_images_ids,
     get_image_bird,

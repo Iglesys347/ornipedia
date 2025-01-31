@@ -9,11 +9,15 @@ PSQL_DB = "ornipedia"
 DB_URL = f"postgresql://{PSQL_USER}:{PSQL_PASSWORD}@{PSQL_HOST}:{PSQL_PORT}/{PSQL_DB}"
 DB_DEBUG = False
 
-ALLOWED_ORIGINS = []
+REDIS_HOST = "127.0.0.1"
+REDIS_PORT = 6379
+REDIS_DB = 0
+
+ALLOWED_ORIGINS = ["http://localhost:3000"]
 
 IMAGE_FOLDER = "/path/to/the/image/folder"
 
 try:
-    from src.settings_local import *
+    from src.settings_local import *  # type: ignore
 except ImportError:
     pass

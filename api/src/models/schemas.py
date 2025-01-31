@@ -1,7 +1,7 @@
 from typing import Any
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, ValidationInfo
 
-from src.database import db_models
+from src.database.sql import db_models
 
 
 class TranslationBase(BaseModel):
@@ -26,8 +26,7 @@ class BirdBase(BaseModel):
 
 
 class Bird(BirdBase, TranslationNoID):
-
-    @model_validator(mode="before")
+    @model_validator(mode="before")  #  type: ignore
     @classmethod
     def convert_db_bird(cls, data: Any) -> Any:
         if isinstance(data, db_models.Bird):
@@ -62,7 +61,7 @@ class AuthorInfo(BaseModel):
 
 
 class ImageInfo(BaseModel):
-    @model_validator(mode="before")
+    @model_validator(mode="before")  #  type: ignore
     @classmethod
     def convert_db_bird(cls, data: Any) -> Any:
         if isinstance(data, db_models.Image):

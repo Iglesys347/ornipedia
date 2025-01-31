@@ -8,8 +8,14 @@ from sqlalchemy.pool import StaticPool
 
 from src.main import app
 from src.dependencies import get_db
-from src.database.database import Base
-from src.database.db_models import Bird, Translation, Image, ImageAuthor, ImageLicense
+from src.database.sql.database import Base
+from src.database.sql.db_models import (
+    Bird,
+    Translation,
+    Image,
+    ImageAuthor,
+    ImageLicense,
+)
 
 from tests.consts import SQLALCHEMY_DATABASE_URL, TEST_BIRD_1
 
@@ -25,11 +31,13 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 def override_get_db():
+    db = None
     try:
         db = TestingSessionLocal()
         yield db
     finally:
-        db.close()
+        if db:
+            db.close()
 
 
 @pytest.fixture(scope="session")

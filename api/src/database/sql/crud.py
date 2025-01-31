@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, contains_eager, Query
 
 from src.models.responses import PaginatedResponse
 
-from src.database import db_models
+from src.database.sql import db_models
 from src.models.schemas import Bird
 
 
@@ -115,7 +115,10 @@ def get_image_info(db: Session, img_id: int, language: str = "fr"):
 def get_random_image(
     db: Session, species: str | None = None, sub_species: str | None = None
 ):
-    query = db.query(db_models.Image)
+    query = db.query(db_models.Image).join(
+        db_models.Translation,
+        onclause=db_models.Translation.bird_id == db_models.Image.bird_id,
+    )
     if species:
         query = query.filter(db_models.Translation.species == species)
     if sub_species:

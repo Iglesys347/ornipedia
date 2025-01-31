@@ -12,7 +12,7 @@ from src.dependencies import get_db
 
 from src.models.responses import ErrorMessage, PaginatedResponse
 
-from src.database.crud import get_species, get_sub_species
+from src.database.sql.crud import get_species, get_sub_species
 
 
 router = APIRouter(
