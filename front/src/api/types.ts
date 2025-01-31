@@ -9,3 +9,9 @@ export type PaginatedSpecies = {
     per_page: number
     items: string[]
 }
+
+export type Quiz = {
+    quiz_id: string
+    quiz_image: number
+    options: number[]
+}
