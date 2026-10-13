@@ -70,11 +70,18 @@ jobs:
         env:
           ANSIBLE_BECOME_PASSWORD_FILE: ${{ runner.temp }}/become_password
           ANSIBLE_HOST_KEY_CHECKING: "False"
-        # the vault is always written in vars/vault.yml by this workflow
+        # Safety: only the next.ornipedia.com host is targeted (ansible fails if it is not
+        # in the inventory, e.g. when the production inventory is used by mistake) and
+        # the instance variables are forced, so that production can never be overwritten.
+        # The vault is always written in vars/vault.yml by this workflow.
         run: |
           ansible-playbook api.yml front.yml -i inventory.ini \
+            --limit next.ornipedia.com \
             --private-key "$RUNNER_TEMP/private_key.pem" \
-            -e ornipedia_vault_file=vault.yml
+            -e ornipedia_instance=ornipedia-next \
+            -e ornipedia_vault_file=vault.yml \
+            -e ornipedia_run_migrations=true \
+            -e ornipedia_noindex=true
 
       - name: Check the deployment
         run: |
