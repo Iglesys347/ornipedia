@@ -10,13 +10,16 @@ class Bird(Base):
     id = Column(Integer, primary_key=True, index=True)
     latin_name = Column(String, nullable=False)
 
-    translations = relationship("Translation", back_populates="bird", lazy="joined")
-    images = relationship("Image", back_populates="bird", lazy="joined")
+    translations = relationship("Translation", back_populates="bird", lazy="selectin")
+    images = relationship("Image", back_populates="bird", lazy="selectin")
 
-    def flat_dict(self):
+    def flat_dict(self, language: str | None = None):
         bird_dict = {"id": self.id, "latin_name": self.latin_name}
-        if self.translations:
-            translation = self.translations[0]
+        translations = self.translations
+        if language is not None:
+            translations = [t for t in translations if t.language_code == language]
+        if translations:
+            translation = translations[0]
             bird_dict.update(
                 {
                     "name": translation.name,
@@ -42,7 +45,7 @@ class Translation(Base):
     language_code = Column(String, nullable=False)
     name = Column(String, nullable=False)
     species = Column(String, nullable=False)
-    sub_species = Column(String, nullable=False)
+    sub_species = Column(String, nullable=True)
     details = Column(String)
 
     bird = relationship("Bird", back_populates="translations")
@@ -71,7 +74,7 @@ class ImageLicense(Base):
 
     __table_args__ = (UniqueConstraint("short_name", "link", name="img_license_uc"),)
 
-    images = relationship("Image", back_populates="license", lazy="joined")
+    images = relationship("Image", back_populates="license")
 
 
 class ImageAuthor(Base):
@@ -82,4 +85,4 @@ class ImageAuthor(Base):
 
     __table_args__ = (UniqueConstraint("name", "link", name="img_author_uc"),)
 
-    images = relationship("Image", back_populates="author", lazy="joined")
+    images = relationship("Image", back_populates="author")

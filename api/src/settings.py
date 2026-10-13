@@ -1,3 +1,12 @@
+"""Application settings.
+
+Values can be overridden by a `src/settings_local.py` file (used by the Ansible
+deployment) and then by environment variables prefixed with `ORNIPEDIA_`.
+"""
+
+import os
+from urllib.parse import quote_plus
+
 DEV = False
 
 PSQL_USER = "postgres"
@@ -6,7 +15,7 @@ PSQL_HOST = "127.0.0.1"
 PSQL_PORT = 5432
 PSQL_DB = "ornipedia"
 
-DB_URL = f"postgresql://{PSQL_USER}:{PSQL_PASSWORD}@{PSQL_HOST}:{PSQL_PORT}/{PSQL_DB}"
+DB_URL = None
 DB_DEBUG = False
 
 ALLOWED_ORIGINS = []
@@ -14,6 +23,27 @@ ALLOWED_ORIGINS = []
 IMAGE_FOLDER = "/path/to/the/image/folder"
 
 try:
-    from src.settings_local import *
+    from src.settings_local import *  # noqa: F401,F403 pylint: disable=wildcard-import,unused-wildcard-import
 except ImportError:
     pass
+
+PSQL_USER = os.environ.get("ORNIPEDIA_PSQL_USER", PSQL_USER)
+PSQL_PASSWORD = os.environ.get("ORNIPEDIA_PSQL_PASSWORD", PSQL_PASSWORD)
+PSQL_HOST = os.environ.get("ORNIPEDIA_PSQL_HOST", PSQL_HOST)
+PSQL_PORT = int(os.environ.get("ORNIPEDIA_PSQL_PORT", PSQL_PORT))
+PSQL_DB = os.environ.get("ORNIPEDIA_PSQL_DB", PSQL_DB)
+
+DB_URL = os.environ.get("ORNIPEDIA_DB_URL", DB_URL) or (
+    "postgresql+psycopg2://"
+    f"{quote_plus(PSQL_USER)}:{quote_plus(PSQL_PASSWORD)}@{PSQL_HOST}:{PSQL_PORT}/{PSQL_DB}"
+)
+DB_DEBUG = os.environ.get("ORNIPEDIA_DB_DEBUG", str(DB_DEBUG)).lower() in ("1", "true", "yes")
+
+if "ORNIPEDIA_ALLOWED_ORIGINS" in os.environ:
+    ALLOWED_ORIGINS = [
+        origin.strip()
+        for origin in os.environ["ORNIPEDIA_ALLOWED_ORIGINS"].split(",")
+        if origin.strip()
+    ]
+
+IMAGE_FOLDER = os.environ.get("ORNIPEDIA_IMAGE_FOLDER", IMAGE_FOLDER)

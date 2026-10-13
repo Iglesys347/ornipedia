@@ -98,3 +98,19 @@ BIRD1_FR_IMAGES = {
     "language_code": "fr",
     "image_ids": [img["id"] for img in TEST_BIRD_1["images"]],
 }
+
+# bird without any image nor sub-species
+TEST_BIRD_2 = {
+    "id": 2,
+    "latin_name": "test_latin_name2",
+    "translations": [
+        {
+            "id": 3,
+            "name": "test_name3",
+            "species": "test_species3",
+            "sub_species": None,
+            "details": None,
+            "language_code": "fr",
+        },
+    ],
+}

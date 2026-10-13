@@ -12,3 +12,13 @@
   notify:
     - Reload Gunicorn
     - Reload NGINX
+
+- name: Apply the database migrations
+  ansible.builtin.command: "{{ venv_path }}/bin/alembic upgrade head"
+  args:
+    chdir: "{{ remote_api_dir }}"
+  environment:
+    PYTHONPATH: "{{ remote_api_dir }}"
+  register: python_alembic_result
+  changed_when: "'Running upgrade' in python_alembic_result.stderr"
+  when: ornipedia_run_migrations | default(false) | bool

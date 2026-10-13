@@ -3,7 +3,8 @@
   hosts:
     - ornipedia
   vars_files:
+    - instance.yml
     - front.yml
-    - vault.yml
+    - "{{ ornipedia_vault_file | default('vault.yml') }}"
   roles:
     - static_vue

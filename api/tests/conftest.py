@@ -11,7 +11,7 @@ from src.dependencies import get_db
 from src.database.database import Base
 from src.database.db_models import Bird, Translation, Image, ImageAuthor, ImageLicense
 
-from tests.consts import SQLALCHEMY_DATABASE_URL, TEST_BIRD_1
+from tests.consts import SQLALCHEMY_DATABASE_URL, TEST_BIRD_1, TEST_BIRD_2
 
 
 engine = create_engine(
@@ -85,3 +85,18 @@ def setup_testing_db(tmp_path_factory):
         session.add(db_img_license)
 
     session.commit()
+
+
+@pytest.fixture
+def bird_without_images():
+    """Temporarily adds a bird without images nor sub-species to the database"""
+    session = TestingSessionLocal()
+    session.add(Bird(id=TEST_BIRD_2["id"], latin_name=TEST_BIRD_2["latin_name"]))
+    for translation in TEST_BIRD_2["translations"]:
+        session.add(Translation(bird_id=TEST_BIRD_2["id"], **translation))
+    session.commit()
+    yield TEST_BIRD_2
+    session.query(Translation).filter(Translation.bird_id == TEST_BIRD_2["id"]).delete()
+    session.query(Bird).filter(Bird.id == TEST_BIRD_2["id"]).delete()
+    session.commit()
+    session.close()

@@ -3,9 +3,10 @@
   hosts:
     - ornipedia
   vars_files:
+    - instance.yml
     - gunicorn.yml
     - front.yml
     - nginx.yml
-    - vault.yml
+    - "{{ ornipedia_vault_file | default('vault.yml') }}"
   roles:
     - nginx

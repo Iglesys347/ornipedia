@@ -5,11 +5,11 @@ name: Pytest
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "next" ]
     paths:
       - api/**
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "next" ]
     paths:
       - api/**
 
@@ -25,17 +25,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install flake8 pytest
         pip install -r requirements/dev-requirements.txt
     - name: Lint with flake8
       run: |
@@ -47,3 +46,10 @@ jobs:
       run: |
         export PYTHONPATH=$(pwd)
         pytest
+    - name: Check that the migrations match the models
+      env:
+        ORNIPEDIA_DB_URL: sqlite:///migrations_check.db
+      run: |
+        export PYTHONPATH=$(pwd)
+        alembic upgrade head
+        alembic check

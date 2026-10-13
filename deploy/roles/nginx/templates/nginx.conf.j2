@@ -14,6 +14,11 @@ server {
         include /etc/letsencrypt/options-ssl-nginx.conf;
         ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
+{% if ornipedia_noindex | default(false) | bool %}
+        # keep this instance out of the search engines
+        add_header X-Robots-Tag "noindex, nofollow" always;
+
+{% endif %}
         root {{ static_folder }};
         index index.html index.htm;
 

@@ -1,0 +1,87 @@
+name: Deploy Next
+
+# Deploys the API and the front on https://next.ornipedia.com (development version):
+# automatically for each push on the `next` branch, or manually for any branch
+# ("Run workflow" button, then choose the branch to deploy).
+on:
+  push:
+    branches:
+      - next
+  workflow_dispatch:
+
+# never run two deployments at the same time, the latest one waits for the previous one
+concurrency:
+  group: deploy-next
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy API and front on next.ornipedia.com
+    runs-on: ubuntu-latest
+    environment:
+      name: next
+      url: https://next.ornipedia.com
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key and become password
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          ANSIBLE_BECOME_PASSWORD: ${{ secrets.ANSIBLE_BECOME_PASSWORD }}
+        run: |
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/private_key.pem"
+          chmod 600 "$RUNNER_TEMP/private_key.pem"
+          printf '%s\n' "$ANSIBLE_BECOME_PASSWORD" > "$RUNNER_TEMP/become_password"
+          chmod 600 "$RUNNER_TEMP/become_password"
+
+      - name: Create inventory and vault files
+        working-directory: ./deploy
+        env:
+          ANSIBLE_INVENTORY: ${{ secrets.ANSIBLE_INVENTORY }}
+          ANSIBLE_VAULT: ${{ secrets.ANSIBLE_VAULT }}
+        run: |
+          printf '%s\n' "$ANSIBLE_INVENTORY" > inventory.ini
+          printf '%s\n' "$ANSIBLE_VAULT" > vars/vault.yml
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+
+      - name: Build front
+        working-directory: ./front
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://next.ornipedia.com/api' }}
+        run: |
+          printf 'VITE_API_URL="%s"\n' "$VITE_API_URL" > .env.prod
+          npm ci
+          npm run build:prod
+
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      - name: Run Ansible Playbooks
+        working-directory: ./deploy
+        env:
+          ANSIBLE_BECOME_PASSWORD_FILE: ${{ runner.temp }}/become_password
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        # the vault is always written in vars/vault.yml by this workflow
+        run: |
+          ansible-playbook api.yml front.yml -i inventory.ini \
+            --private-key "$RUNNER_TEMP/private_key.pem" \
+            -e ornipedia_vault_file=vault.yml
+
+      - name: Check the deployment
+        run: |
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 --retry-all-errors \
+            https://next.ornipedia.com/api/species > /dev/null
+          curl --fail --silent --show-error https://next.ornipedia.com/ > /dev/null
+
+      - name: Clean up secrets
+        if: always()
+        run: rm -f "$RUNNER_TEMP/private_key.pem" "$RUNNER_TEMP/become_password" deploy/inventory.ini deploy/vars/vault.yml

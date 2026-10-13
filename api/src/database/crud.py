@@ -15,8 +15,6 @@ def paginate(query: Query, page=1, per_page=10, distinct=False, str_items=False)
     items = query.offset((page - 1) * per_page).limit(per_page).all()
     if str_items:
         items = [item[0] for item in items]
-    if items == [None]:
-        items = []
     return PaginatedResponse(page=page, per_page=per_page, total=total, items=items)
 
 
@@ -58,7 +56,6 @@ def get_bird_with_images(db: Session, bird_id: int, language: str = "fr"):
         db.query(db_models.Bird)
         .join(db_models.Translation)
         .options(contains_eager(db_models.Bird.translations))
-        .join(db_models.Image)
         .filter(db_models.Bird.id == bird_id)
         .filter(db_models.Translation.language_code == language)
         .first()
@@ -107,15 +104,19 @@ def get_image_bird(db: Session, img_id: int, language: str = "fr"):
     )
 
 
-def get_image_info(db: Session, img_id: int, language: str = "fr"):
-    res = db.query(db_models.Image).filter(db_models.Image.id == img_id).one()
-    return res
+def get_image_info(db: Session, img_id: int):
+    return db.query(db_models.Image).filter(db_models.Image.id == img_id).first()
 
 
 def get_random_image(
     db: Session, species: str | None = None, sub_species: str | None = None
 ):
     query = db.query(db_models.Image)
+    if species or sub_species:
+        query = query.join(
+            db_models.Translation,
+            onclause=db_models.Translation.bird_id == db_models.Image.bird_id,
+        ).distinct()
     if species:
         query = query.filter(db_models.Translation.species == species)
     if sub_species:
@@ -145,6 +146,7 @@ def get_sub_species(
     query = db.query(db_models.Translation.sub_species).filter(
         db_models.Translation.language_code == language,
         db_models.Translation.species == species,
+        db_models.Translation.sub_species.isnot(None),
     )
     return paginate(query, page, per_page, distinct=True, str_items=True)
 

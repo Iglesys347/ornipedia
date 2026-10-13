@@ -3,8 +3,9 @@
   hosts:
     - ornipedia
   vars_files:
+    - instance.yml
     - certbot.yml
-    - vault.yml
+    - "{{ ornipedia_vault_file | default('vault.yml') }}"
   roles:
     - certbot
     - certbot_autorenew
