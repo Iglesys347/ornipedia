@@ -1,7 +1,6 @@
 local_api_dir: "../api"
 remote_api_dir: "{{ ansible_env.HOME }}/ornipedia/api"
 
-local_api_src_dir: "{{ local_api_dir }}/src/"
 remote_api_src_dir: "{{ remote_api_dir }}/src"
 
 local_requirements: "{{ local_api_dir }}/requirements/requirements.txt"

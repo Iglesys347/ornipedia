@@ -9,10 +9,10 @@
 - name: Check that the plugin dns-digitalocean is installed
   become: true
   ansible.builtin.command: certbot plugins
-  register: result
+  register: certbot_plugin_result
   changed_when: false
   failed_when:
-    - '"dns-digitalocean" not in result.stdout'
+    - '"dns-digitalocean" not in certbot_plugin_result.stdout'
 
 - name: Create Digital Ocean config directory
   ansible.builtin.file:
@@ -38,10 +38,10 @@
     --email {{ cerbot_email }}
     --agree-tos
     --dry-run
-  register: dry_run_result
+  register: certbot_dry_run_result
   changed_when: false
   failed_when:
-    - '"The dry run was successful" not in dry_run_result.stdout'
+    - '"The dry run was successful" not in certbot_dry_run_result.stdout'
 
 - name: Run certbot
   become: true
@@ -53,8 +53,8 @@
     --non-interactive
     --email {{ certbot_email }}
     --agree-tos
-  register: run_result
+  register: certbot_run_result
   changed_when:
-    - '"Certificate not yet due for renewal; no action taken." not in run_result.stdout'
+    - '"Certificate not yet due for renewal; no action taken." not in certbot_run_result.stdout'
   failed_when:
-    - '"Error" in run_result.stderr or "Unable" in run_result.stderr'
+    - '"Error" in certbot_run_result.stderr or "Unable" in certbot_run_result.stderr'
