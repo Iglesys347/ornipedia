@@ -164,3 +164,14 @@ def test_bird_images_missing_id(client):
     response = client.get("/birds/123456789/images")
     assert response.status_code == 404
     assert response.json() == {"detail": "Bird not found"}
+
+
+def test_bird_images_without_images(client, bird_without_images):
+    response = client.get(f"/birds/{bird_without_images['id']}/images")
+    assert response.status_code == 200
+    assert response.json()["image_ids"] == []
+
+
+def test_birds_per_page_too_large(client):
+    response = client.get("/birds", params={"per_page": 1000})
+    assert response.status_code == 422

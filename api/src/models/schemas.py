@@ -57,25 +57,11 @@ class LicenseInfo(BaseModel):
 
 
 class AuthorInfo(BaseModel):
-    name: str
-    link: str
+    name: str | None = None
+    link: str | None = None
 
 
 class ImageInfo(BaseModel):
-    @model_validator(mode="before")
-    @classmethod
-    def convert_db_bird(cls, data: Any) -> Any:
-        if isinstance(data, db_models.Image):
-            d = {
-                "id": data.id,
-                "bird": data.bird.flat_dict(),
-                "license": data.license,
-                "author": data.author,
-                "original_url": data.original_url,
-            }
-            return d
-        return data
-
     id: int
 
     license: LicenseInfo

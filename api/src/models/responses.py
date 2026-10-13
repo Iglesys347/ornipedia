@@ -3,6 +3,8 @@ from pydantic import BaseModel
 
 Item = TypeVar("Item")
 
+MAX_PER_PAGE = 100
+
 
 class PaginatedResponse(BaseModel, Generic[Item]):
     items: List[Item]

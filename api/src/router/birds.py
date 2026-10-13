@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from src.dependencies import get_db
 
 from src.models.schemas import Bird, BirdWithImages
-from src.models.responses import PaginatedResponse, ErrorMessage
+from src.models.responses import MAX_PER_PAGE, PaginatedResponse, ErrorMessage
 
 from src.database.crud import get_bird, get_birds, get_bird_with_images
 
@@ -22,7 +22,7 @@ def read_birds(
     species: str | None = None,
     sub_species: str | None = None,
     page: int = Query(default=1, ge=1),
-    per_page: int = Query(default=25, ge=0),
+    per_page: int = Query(default=25, ge=0, le=MAX_PER_PAGE),
     db: Session = Depends(get_db),
 ):
     return get_birds(
