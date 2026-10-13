@@ -17,9 +17,7 @@ export const useSpeciesStore = defineStore('species', () => {
   }
 
   async function fetchSpecies(lang: string) {
-    if (!species.value[lang]) {
-      species.value[lang] = []
-    }
+    species.value[lang] = []
     // looping to retrieve all the species
     let nextPage = true
     let page = 1
@@ -29,7 +27,7 @@ export const useSpeciesStore = defineStore('species', () => {
         return null
       }
       species.value[lang] = species.value[lang].concat(res.data.items)
-      if (species.value[lang].length == res.data.total) {
+      if (res.data.items.length == 0 || species.value[lang].length >= res.data.total) {
         nextPage = false
       }
       page += 1
@@ -37,21 +35,22 @@ export const useSpeciesStore = defineStore('species', () => {
   }
 
 
+  // sub-species are cached by language and species
   const subSpecies: Ref<{ [id: string]: string[] }> = ref({})
 
   async function getSubSpecies(lang: string, species: string): Promise<string[]> {
-    if (!subSpecies.value[lang] || subSpecies.value[lang].length == 0) {
+    const key = `${lang}:${species}`
+    if (!subSpecies.value[key] || subSpecies.value[key].length == 0) {
       await fetchSubSpecies(lang, species)
     }
 
-    return subSpecies.value[lang]
+    return subSpecies.value[key]
   }
 
   async function fetchSubSpecies(lang: string, species: string) {
-    if (!subSpecies.value[lang]) {
-      subSpecies.value[lang] = []
-    }
-    // looping to retrieve all the species
+    const key = `${lang}:${species}`
+    subSpecies.value[key] = []
+    // looping to retrieve all the sub-species
     let nextPage = true
     let page = 1
     while (nextPage) {
@@ -59,8 +58,8 @@ export const useSpeciesStore = defineStore('species', () => {
       if (res.status != 200) {
         return null
       }
-      subSpecies.value[lang] = subSpecies.value[lang].concat(res.data.items)
-      if (subSpecies.value[lang].length == res.data.total) {
+      subSpecies.value[key] = subSpecies.value[key].concat(res.data.items)
+      if (res.data.items.length == 0 || subSpecies.value[key].length >= res.data.total) {
         nextPage = false
       }
       page += 1

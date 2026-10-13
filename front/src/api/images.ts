@@ -17,5 +17,5 @@ export function getImageInfo(imgId: number, lang: string) {
 }
 
 export function getRandomImage(species: string | null = null, subSpecies: string | null = null) {
-    return instance.get(`images/image/random`, { params: { species: species, sub_species: subSpecies } })
+    return instance.get(`/images/random`, { params: { species: species, sub_species: subSpecies } })
 }
