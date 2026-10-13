@@ -3,17 +3,17 @@
 #####################################
 
 [Unit]
-Description=gunicorn daemon
+Description=gunicorn daemon ({{ instance_name }})
 After=network.target
 
 [Service]
-PIDFile=/run/gunicorn/pid-{{ gunicorn_service_name }}
+PIDFile=/run/{{ gunicorn_runtime_dir }}/pid-{{ gunicorn_service_name }}
 User={{ ansible_env.USER }}
 Group={{ ansible_env.USER }}
-RuntimeDirectory=gunicorn
+RuntimeDirectory={{ gunicorn_runtime_dir }}
 Environment="PYTHONPATH={{ project_dir }}"
 WorkingDirectory={{ project_dir }}
-ExecStart={{ venv_path }}/bin/gunicorn --pid /run/gunicorn/pid-{{ gunicorn_service_name }}  -t {{ n_threads }} -w {{ n_workers }} {{ api_app }} --reload --bind {{ bind_server_socket}} --worker-class uvicorn.workers.UvicornWorker
+ExecStart={{ venv_path }}/bin/gunicorn --pid /run/{{ gunicorn_runtime_dir }}/pid-{{ gunicorn_service_name }}  -t {{ n_threads }} -w {{ n_workers }} {{ api_app }} --reload --bind {{ bind_server_socket}} --worker-class uvicorn.workers.UvicornWorker
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID
 PrivateTmp=true

@@ -1,2 +1,4 @@
-inventory.ini
-vars/vault.yml
+inventory*.ini
+!inventory*example.ini
+vars/vault*.yml
+!vars/vault_example.yml

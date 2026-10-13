@@ -1,0 +1,5 @@
+# Name of the deployed instance, used for the remote folder and the gunicorn service.
+# Set `ornipedia_instance` in the inventory to deploy another instance of the
+# application on the same server (e.g. `ornipedia-next`, see inventory_next_example.ini)
+instance_name: "{{ ornipedia_instance | default('ornipedia') }}"
+instance_dir: "{{ ansible_env.HOME }}/{{ instance_name }}"
