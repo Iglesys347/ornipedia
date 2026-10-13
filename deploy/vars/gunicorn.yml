@@ -6,8 +6,8 @@ gunicorn_runtime_dir: "{{ 'gunicorn' if instance_name == 'ornipedia' else 'gunic
 # server socket to bind (see gunicorn --bind option for accepted values)
 # by default, we use a unix socket
 bind_server_socket: "unix:/run/{{ gunicorn_runtime_dir }}/gunicorn.sock"
-# number of threads
-n_threads: 5
+# timeout (in seconds) after which a silent worker is killed and restarted
+gunicorn_timeout: 30
 # number of workers
 n_workers: 3
 # destination of the service file

@@ -13,7 +13,7 @@ Group={{ ansible_env.USER }}
 RuntimeDirectory={{ gunicorn_runtime_dir }}
 Environment="PYTHONPATH={{ project_dir }}"
 WorkingDirectory={{ project_dir }}
-ExecStart={{ venv_path }}/bin/gunicorn --pid /run/{{ gunicorn_runtime_dir }}/pid-{{ gunicorn_service_name }}  -t {{ n_threads }} -w {{ n_workers }} {{ api_app }} --reload --bind {{ bind_server_socket}} --worker-class uvicorn.workers.UvicornWorker
+ExecStart={{ venv_path }}/bin/gunicorn --pid /run/{{ gunicorn_runtime_dir }}/pid-{{ gunicorn_service_name }} --timeout {{ gunicorn_timeout }} -w {{ n_workers }} {{ api_app }} --reload --bind {{ bind_server_socket}} --worker-class uvicorn.workers.UvicornWorker
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID
 PrivateTmp=true

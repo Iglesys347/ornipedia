@@ -16,8 +16,9 @@
     owner: root
     group: root
     mode: "0644"
+  # a reload does not take the changes of the unit file into account
   notify:
-    - Reload Gunicorn
+    - Restart Gunicorn
 
 - name: Make sure Gunicorn is enabled and running
   become: true
