@@ -16,7 +16,7 @@
 
 - name: Create Digital Ocean config directory
   ansible.builtin.file:
-    path: "{{ cerbot_do_conf_dir }}"
+    path: "{{ certbot_do_conf_dir }}"
     state: directory
     mode: "0755"
 
@@ -35,7 +35,7 @@
     --dns-digitalocean-credentials {{ certbot_do_conf_path }}
     -d {{ certbot_domain_name }}
     --non-interactive
-    --email {{ cerbot_email }}
+    --email {{ certbot_email }}
     --agree-tos
     --dry-run
   register: certbot_dry_run_result
@@ -48,7 +48,7 @@
   ansible.builtin.command: >
     certbot certonly
     --dns-digitalocean
-    --dns-digitalocean-credentials {{ cerbot_do_conf_path }}
+    --dns-digitalocean-credentials {{ certbot_do_conf_path }}
     -d {{ certbot_domain_name }}
     --non-interactive
     --email {{ certbot_email }}
