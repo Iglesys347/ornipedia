@@ -28,8 +28,10 @@ The other variables used by the playbooks are located in the folder [vars](./var
 ## Example usage
 
 ```bash
-ansible-playbook full.yml -i inventory.ini
+ansible-playbook full.yml -i inventory.ini -K
 ```
+
+`-K` (`--ask-become-pass`) asks for the sudo password of the remote user, needed by the tasks run with `become` (packages, NGINX and systemd files).
 
 ## Next instance (next.ornipedia.com)
 
@@ -67,7 +69,7 @@ The instance is selected by the variables of the inventory, see [inventory_next_
 
    ```bash
    (cd ../front && VITE_API_URL=https://next.ornipedia.com/api npm run build:prod)
-   ansible-playbook full.yml -i inventory_next.ini
+   ansible-playbook full.yml -i inventory_next.ini -K
    ```
 
 ### Continuous deployment
