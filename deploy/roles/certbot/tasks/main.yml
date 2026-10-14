@@ -18,14 +18,18 @@
   ansible.builtin.file:
     path: "{{ certbot_do_conf_dir }}"
     state: directory
-    mode: "0755"
+    mode: "0700"
 
+# the file contains the API token: only readable by root (certbot refuses
+# credentials readable by other users)
 - name: Copy template Digital Ocean configuration file
   become: true
   ansible.builtin.template:
     src: digital-ocean.ini.j2
     dest: "{{ certbot_do_conf_path }}"
-    mode: "0644"
+    owner: root
+    group: root
+    mode: "0600"
 
 - name: Dry run certbot
   become: true
