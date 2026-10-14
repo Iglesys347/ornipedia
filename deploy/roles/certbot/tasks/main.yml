@@ -60,5 +60,14 @@
   register: certbot_run_result
   changed_when:
     - '"Certificate not yet due for renewal; no action taken." not in certbot_run_result.stdout'
-  failed_when:
-    - '"Error" in certbot_run_result.stderr or "Unable" in certbot_run_result.stderr'
+  failed_when: >-
+    certbot_run_result.rc != 0
+    or "Error" in certbot_run_result.stderr
+    or "Unable" in certbot_run_result.stderr
+
+- name: Check that the certificate exists
+  become: true
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ certbot_domain_name }}/fullchain.pem"
+  register: certbot_cert_stat
+  failed_when: not certbot_cert_stat.stat.exists
