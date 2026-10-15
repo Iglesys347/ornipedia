@@ -1,14 +1,17 @@
 <template>
-  <v-row class="ma-2">
-    <v-spacer></v-spacer>
-    <v-col cols="10" md="3" sm="4" xs="10">
+  <v-row class="ma-2" align="center">
+    <v-col cols="12" md="">
+      <h1 class="text-h5">{{ $t("image_gallery.title") }}</h1>
+    </v-col>
+    <v-col cols="10" md="3" sm="6">
       <v-text-field v-model="search" class="mt-2" append-inner-icon="mdi-magnify" :label="$t('search')"
         @update:model-value="updateImages(true)" hide-details :density="density" clearable></v-text-field>
     </v-col>
     <v-col cols="2" md="1">
       <v-menu v-model="filterMenu" :close-on-content-click="false" location="end">
         <template v-slot:activator="{ props }">
-          <v-btn v-bind="props" icon="mdi-filter-menu-outline" variant="outlined" class="mt-3" :size="btnSize"> </v-btn>
+          <v-btn v-bind="props" icon="mdi-filter-menu-outline" variant="outlined" class="mt-3" :size="btnSize"
+            :aria-label="$t('a11y.filters')"> </v-btn>
         </template>
 
         <v-card min-width="300" elevation="1">
@@ -31,8 +34,8 @@
 
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="red" variant="text" @click="filterMenu = false">
-              Close
+            <v-btn variant="text" @click="filterMenu = false">
+              {{ $t("close") }}
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -42,24 +45,20 @@
 
 
   <div v-if="imagesIds.length > 0">
-    <v-row class="mx-4">
-      <v-col v-for="i in imagesIds" :key="i" class="d-flex child-flex" cols="12" sm="3">
-        <v-hover v-slot="{ isHovering, props }">
-          <v-img :src="getImageUrl(i)" aspect-ratio="16/9" cover height="200px" v-bind="props" class="cursor-pointer"
-            @click="showCarousel(i)" rounded="xl">
-            <v-slide-y-reverse-transition>
-              <v-card v-if="isHovering" class="d-flex flex-column bg-transparent" elevation="0" rounded="0"
-                style="height: 100%;">
-                <v-spacer></v-spacer>
-                <v-card-actions class="justify-center text-white" style="background-color: rgba(0, 0, 0, 0.3);">
-                  <span>{{ getImgBirdName(i) }}</span>
-                  <!-- <span class="mx-1"></span> -->
-                  <!-- <span class="font-italic">{{ getImgBirdLatinName(i) }}</span> -->
-                </v-card-actions>
-              </v-card>
-            </v-slide-y-reverse-transition>
-          </v-img>
-        </v-hover>
+    <v-row class="mx-2 mx-sm-4">
+      <v-col v-for="i in imagesIds" :key="i" cols="6" sm="4" md="3">
+        <v-card class="bird-tile" @click="showCarousel(i)">
+          <v-img :src="getImageUrl(i)" :alt="getImgBirdName(i) || $t('a11y.bird_photo')" :aspect-ratio="4 / 3" cover
+            rounded="xl"></v-img>
+          <div class="pa-2">
+            <div class="text-body-2 text-sm-subtitle-1 font-weight-medium text-truncate">
+              {{ getImgBirdName(i) || "\u00a0" }}
+            </div>
+            <div class="text-caption font-italic text-medium-emphasis text-truncate">
+              {{ getImgBirdLatinName(i) || "\u00a0" }}
+            </div>
+          </div>
+        </v-card>
       </v-col>
     </v-row>
     <v-pagination class="mb-5 mt-2" v-model="page" :length="totalPages" rounded="circle"
@@ -86,10 +85,12 @@
 
   <v-dialog v-model="carouselVisible" width="600px">
     <v-card class="pa-4 text-center">
-      <v-btn icon class="close-button" @click="closeCarousel" variant="text">
+      <v-btn icon class="close-button" @click="closeCarousel" variant="flat" size="small"
+        :aria-label="$t('a11y.close')">
         <v-icon>mdi-close</v-icon>
       </v-btn>
-      <v-img :src="getImageUrl(carouselIndex)" contain max-height="500px" rounded="xl"></v-img>
+      <v-img :src="getImageUrl(carouselIndex)" :alt="getImgBirdName(carouselIndex) || $t('a11y.bird_photo')" contain
+        max-height="500px" rounded="xl"></v-img>
       <v-card-title>
         {{ getImgBirdName(carouselIndex) }}
       </v-card-title>
@@ -97,9 +98,9 @@
         <span class="text-subtitle-2 font-italic"> {{ getImgBirdLatinName(carouselIndex) }}</span>
       </v-card-text>
       <v-card-subtitle>
-        <a :href="getImgAuthorLink(carouselIndex)" target="_blank">{{ getImgAuthorName(carouselIndex) }}</a>
+        <a :href="getImgAuthorLink(carouselIndex)" target="_blank" rel="noopener">{{ getImgAuthorName(carouselIndex) }}</a>
         |
-        <a :href="getImgCopyrightLink(carouselIndex)">{{ getImgCopyrightName(carouselIndex) }}</a>
+        <a :href="getImgCopyrightLink(carouselIndex)" target="_blank" rel="noopener">{{ getImgCopyrightName(carouselIndex) }}</a>
       </v-card-subtitle>
     </v-card>
   </v-dialog>
@@ -174,9 +175,10 @@ async function updateImages(resetPages = false) {
   await imgStore.fetchImageInfo(imagesIds.value, appStore.locale)
   total.value = res.data.total
 }
+// the information of an image may not be loaded yet
 function getImgBirdName(imgId: number) {
   const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
-  return capitalizeFirstLetter(birdInfo!.bird.name)
+  return birdInfo ? capitalizeFirstLetter(birdInfo.bird.name) : ""
 }
 function getImgBirdLatinName(imgId: number) {
   const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
@@ -232,7 +234,7 @@ const btnSize = computed(() => {
 })
 
 function capitalizeFirstLetter(str: string): string {
-  return str[0].toUpperCase() + str.slice(1);
+  return str ? str[0].toUpperCase() + str.slice(1) : str;
 }
 </script>
 
@@ -250,5 +252,9 @@ function capitalizeFirstLetter(str: string): string {
 
 .capitalize {
   text-transform: capitalize;
+}
+
+.bird-tile {
+  background: transparent;
 }
 </style>
