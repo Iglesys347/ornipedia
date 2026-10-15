@@ -22,6 +22,15 @@
     path: /etc/nginx/sites-enabled/default
     state: absent
 
+# an enabled site with a missing certificate makes every reload of NGINX fail,
+# including for the other sites of the server
+- name: Check that the certificate of the site exists
+  become: true
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem"
+  register: nginx_cert_stat
+  failed_when: not nginx_cert_stat.stat.exists
+
 - name: Copy Nginx conf templates
   become: true
   ansible.builtin.template:
