@@ -12,6 +12,15 @@ export default {
         speciesSelect: "Filter by species",
         subSpeciesSelect: "Filter by sub species",
         search: "Search by name",
+        close: "Close",
+        soon: "Soon",
+
+        a11y: {
+            menu: "Open the menu",
+            filters: "Filters",
+            close: "Close",
+            bird_photo: "Bird photo",
+        },
 
         settings: "Settings",
         settingsTheme: "Theme",
@@ -34,7 +43,7 @@ export default {
             } ,
             quiz: {
                 title: "Quiz",
-                desc: "Test you knowledge!"
+                desc: "Test your knowledge!"
             }   
         },
 
@@ -51,6 +60,7 @@ export default {
             }
         },
         image_gallery: {
+            title: "Image gallery",
             no_match: {
                 title: "Unable to find what you are looking for.",
                 desc: "Try to adjust the search terms or filters."
@@ -66,8 +76,17 @@ export default {
 
         filter: "Filtres",
         speciesSelect: "Filtrer par espèce",
-        subSpeciesSelect: "Filtrer par sous espèce",
+        subSpeciesSelect: "Filtrer par sous-espèce",
         search: "Recherche par nom",
+        close: "Fermer",
+        soon: "Bientôt",
+
+        a11y: {
+            menu: "Ouvrir le menu",
+            filters: "Filtres",
+            close: "Fermer",
+            bird_photo: "Photo d'oiseau",
+        },
 
         settings: "Paramètres",
         settingsTheme: "Thème",
@@ -77,7 +96,7 @@ export default {
 
         navigation: {
             home: {
-                title: "Home",
+                title: "Accueil",
                 desc: "",
             },
             image_gallery: {
@@ -86,7 +105,7 @@ export default {
             } ,
             bird_finder: {
                 title:"Trouver un oiseau",
-                desc:"Cherchez et trouver un oiseau"
+                desc:"Cherchez et trouvez un oiseau"
             } ,
             quiz: {
                 title: "Quiz",
@@ -107,6 +126,7 @@ export default {
             }
         },
         image_gallery: {
+            title: "Galerie d'images",
             no_match: {
                 title: "Impossible de trouver une image correspondant à votre recherche",
                 desc: "Essayez d'ajuster les critères de recherche ou les filtres."
