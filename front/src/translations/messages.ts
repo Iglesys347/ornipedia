@@ -22,6 +22,13 @@ export default {
             bird_photo: "Bird photo",
         },
 
+        photo: {
+            previous: "Previous photo",
+            next: "Next photo",
+            credit: "Photo:",
+            all_of_bird: "All the photos of this bird",
+        },
+
         settings: "Settings",
         settingsTheme: "Theme",
         settingsThemeLight: "Light",
@@ -61,6 +68,15 @@ export default {
         },
         image_gallery: {
             title: "Image gallery",
+            species: "Species",
+            sub_species: "Sub-species",
+            count: "No photo | {n} photo | {n} photos",
+            clear_filters: "Clear the filters",
+            error: {
+                title: "Unable to load the photos.",
+                desc: "Check your connection and try again.",
+                retry: "Try again",
+            },
             no_match: {
                 title: "Unable to find what you are looking for.",
                 desc: "Try to adjust the search terms or filters."
@@ -86,6 +102,13 @@ export default {
             filters: "Filtres",
             close: "Fermer",
             bird_photo: "Photo d'oiseau",
+        },
+
+        photo: {
+            previous: "Photo précédente",
+            next: "Photo suivante",
+            credit: "Photo :",
+            all_of_bird: "Toutes les photos de cet oiseau",
         },
 
         settings: "Paramètres",
@@ -127,6 +150,15 @@ export default {
         },
         image_gallery: {
             title: "Galerie d'images",
+            species: "Espèces",
+            sub_species: "Sous-espèces",
+            count: "Aucune photo | {n} photo | {n} photos",
+            clear_filters: "Effacer les filtres",
+            error: {
+                title: "Impossible de charger les photos.",
+                desc: "Vérifiez votre connexion et réessayez.",
+                retry: "Réessayer",
+            },
             no_match: {
                 title: "Impossible de trouver une image correspondant à votre recherche",
                 desc: "Essayez d'ajuster les critères de recherche ou les filtres."
