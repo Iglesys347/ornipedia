@@ -13,6 +13,7 @@ declare module 'vue' {
     Quiz: typeof import('./src/components/Quiz.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SpeciesFilters: typeof import('./src/components/SpeciesFilters.vue')['default']
     SpeciesList: typeof import('./src/components/SpeciesList.vue')['default']
   }
 }

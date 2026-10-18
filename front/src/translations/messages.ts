@@ -68,8 +68,12 @@ export default {
         },
         image_gallery: {
             title: "Image gallery",
-            species: "Species",
-            sub_species: "Sub-species",
+            filters: "Filters",
+            no_species: "No match",
+            species_chip: "Species: {name}",
+            sub_species_chip: "Sub-species: {name}",
+            remove_filter: "Remove this filter",
+            show_results: "No photo | Show {n} photo | Show {n} photos",
             count: "No photo | {n} photo | {n} photos",
             clear_filters: "Clear the filters",
             error: {
@@ -150,8 +154,12 @@ export default {
         },
         image_gallery: {
             title: "Galerie d'images",
-            species: "Espèces",
-            sub_species: "Sous-espèces",
+            filters: "Filtres",
+            no_species: "Aucun résultat",
+            species_chip: "Espèce : {name}",
+            sub_species_chip: "Sous-espèce : {name}",
+            remove_filter: "Retirer ce filtre",
+            show_results: "Aucune photo | Voir {n} photo | Voir les {n} photos",
             count: "Aucune photo | {n} photo | {n} photos",
             clear_filters: "Effacer les filtres",
             error: {

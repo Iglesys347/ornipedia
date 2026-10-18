@@ -1,32 +1,58 @@
 <template>
   <div class="px-2 px-sm-4 pt-2">
+    <h1 class="text-h5 px-3 pt-3 pb-1">{{ $t("image_gallery.title") }}</h1>
+
     <v-row class="ma-0" align="center">
-      <v-col cols="12" md="">
-        <h1 class="text-h5">{{ $t("image_gallery.title") }}</h1>
-      </v-col>
-      <v-col cols="12" sm="8" md="4">
+      <v-col :cols="smallScreen ? undefined : 12" md="4">
         <v-text-field v-model="searchInput" append-inner-icon="mdi-magnify" :label="$t('search')" hide-details
           :density="density" clearable @update:model-value="onSearchInput"></v-text-field>
       </v-col>
+
+      <!-- desktop: filters next to the search field -->
+      <v-col v-if="!smallScreen" cols="12" md="8">
+        <SpeciesFilters :species="species" :sub-species="subSpecies" :selected-species="selectedSpecies"
+          :selected-sub-species="selectedSubSpecies" :density="density" @update:species="selectSpecies"
+          @update:sub-species="selectSubSpecies"></SpeciesFilters>
+      </v-col>
+
+      <!-- mobile: a button opening the filters at the bottom of the screen -->
+      <v-col v-else cols="auto">
+        <v-badge :model-value="activeFiltersCount > 0" :content="activeFiltersCount" color="primary">
+          <v-btn icon="mdi-filter-variant" variant="outlined" :aria-label="$t('image_gallery.filters')"
+            @click="filtersSheet = true"></v-btn>
+        </v-badge>
+      </v-col>
     </v-row>
 
-    <!-- filters: always visible, the selected chips show the active filters -->
-    <div v-if="species.length > 0" class="px-3">
-      <div class="text-caption text-medium-emphasis">{{ $t("image_gallery.species") }}</div>
-      <v-chip-group :model-value="selectedSpecies" filter :show-arrows="!smallScreen" selected-class="text-primary"
-        @update:model-value="selectSpecies">
-        <v-chip v-for="s in species" :key="s.key" :value="s.key" variant="outlined">{{ s.value }}</v-chip>
-      </v-chip-group>
+    <v-bottom-sheet v-model="filtersSheet">
+      <v-card :title="$t('image_gallery.filters')">
+        <v-card-text>
+          <SpeciesFilters :species="species" :sub-species="subSpecies" :selected-species="selectedSpecies"
+            :selected-sub-species="selectedSubSpecies" stacked @update:species="selectSpecies"
+            @update:sub-species="selectSubSpecies"></SpeciesFilters>
+        </v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-btn v-if="activeFiltersCount > 0" variant="text" @click="clearSpeciesFilters">
+            {{ $t("image_gallery.clear_filters") }}
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn variant="flat" color="primary" :loading="loading" @click="filtersSheet = false">
+            {{ $t("image_gallery.show_results", total) }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-bottom-sheet>
 
-      <template v-if="subSpecies.length > 0">
-        <div class="text-caption text-medium-emphasis">{{ $t("image_gallery.sub_species") }}</div>
-        <v-chip-group :model-value="selectedSubSpecies" filter :show-arrows="!smallScreen"
-          selected-class="text-primary" @update:model-value="selectSubSpecies">
-          <v-chip v-for="s in subSpecies" :key="s.key" :value="s.key" variant="outlined" size="small">
-            {{ s.value }}
-          </v-chip>
-        </v-chip-group>
-      </template>
+    <!-- active filters, whatever the number of species -->
+    <div v-if="activeFiltersCount > 0" class="d-flex flex-wrap ga-2 px-3 pt-1">
+      <v-chip v-if="selectedSpecies" closable size="small" color="primary" variant="tonal"
+        :close-label="$t('image_gallery.remove_filter')" @click:close="selectSpecies(null)">
+        {{ $t("image_gallery.species_chip", { name: capitalizeFirstLetter(selectedSpecies) }) }}
+      </v-chip>
+      <v-chip v-if="selectedSubSpecies" closable size="small" color="primary" variant="tonal"
+        :close-label="$t('image_gallery.remove_filter')" @click:close="selectSubSpecies(null)">
+        {{ $t("image_gallery.sub_species_chip", { name: capitalizeFirstLetter(selectedSubSpecies) }) }}
+      </v-chip>
     </div>
 
     <div class="d-flex align-center flex-wrap px-3 py-1 results-bar">
@@ -161,6 +187,7 @@ import { getImageUrl, getImages } from '@/api/images';
 import { useAppStore } from '@/store/app';
 import { useImagesStore } from '@/store/images'
 import { useSpeciesStore } from '@/store/species'
+import SpeciesFilters from '@/components/SpeciesFilters.vue'
 
 const appStore = useAppStore()
 const imgStore = useImagesStore()
@@ -292,13 +319,20 @@ async function loadSubSpecies() {
   }
 }
 
-function selectSpecies(value: unknown) {
-  updateQuery({ species: (value as string | null) ?? null, sub_species: null, page: null })
+function selectSpecies(value: string | null) {
+  updateQuery({ species: value, sub_species: null, page: null })
 }
 
-function selectSubSpecies(value: unknown) {
-  updateQuery({ sub_species: (value as string | null) ?? null, page: null })
+function selectSubSpecies(value: string | null) {
+  updateQuery({ sub_species: value, page: null })
 }
+
+function clearSpeciesFilters() {
+  updateQuery({ species: null, sub_species: null, page: null })
+}
+
+const activeFiltersCount = computed(() => (selectedSpecies.value ? 1 : 0) + (selectedSubSpecies.value ? 1 : 0))
+const filtersSheet = ref(false)
 
 onMounted(loadSpecies)
 watch(selectedSpecies, loadSubSpecies, { immediate: true })
