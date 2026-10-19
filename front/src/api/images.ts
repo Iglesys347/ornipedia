@@ -8,8 +8,18 @@ export function getImages(
     return instance.get("/images", { params: { language: lang, species: species, sub_species: subSpecies, search: search, page: page, per_page: perPage } })
 }
 
-export function getImageUrl(imgId: number) {
-    return `${instance.getUri()}/images/${imgId}`
+// widths of the resized images served by the API
+export type ImageWidth = 320 | 640 | 1280
+
+// URL of the image, resized to `width` pixels when given (original image otherwise)
+export function getImageUrl(imgId: number, width: ImageWidth | null = null) {
+    const url = `${instance.getUri()}/images/${imgId}`
+    return width ? `${url}?width=${width}` : url
+}
+
+// `srcset` attribute letting the browser choose the size of the image
+export function getImageSrcset(imgId: number, widths: ImageWidth[] = [320, 640]) {
+    return widths.map(w => `${getImageUrl(imgId, w)} ${w}w`).join(", ")
 }
 
 export function getImageInfo(imgId: number, lang: string) {

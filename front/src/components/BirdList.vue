@@ -80,27 +80,8 @@
   <div v-else-if="imagesIds.length > 0" :class="{ 'reloading': loading }">
     <v-row class="mx-2 mx-sm-4">
       <v-col v-for="i in imagesIds" :key="i" cols="6" sm="4" md="3">
-        <v-card class="bird-tile" @click="openPhoto(i)">
-          <v-img :src="getImageUrl(i)" :alt="getImgBirdName(i) || $t('a11y.bird_photo')" :aspect-ratio="4 / 3" cover
-            rounded="xl">
-            <template v-slot:placeholder>
-              <div class="tile-placeholder fill-height"></div>
-            </template>
-            <template v-slot:error>
-              <div class="tile-placeholder fill-height d-flex align-center justify-center">
-                <v-icon color="medium-emphasis">mdi-image-off-outline</v-icon>
-              </div>
-            </template>
-          </v-img>
-          <div class="pa-2">
-            <div class="text-body-2 text-sm-subtitle-1 font-weight-medium text-truncate">
-              {{ getImgBirdName(i) || "\u00a0" }}
-            </div>
-            <div class="text-caption font-italic text-medium-emphasis text-truncate">
-              {{ getImgBirdLatinName(i) || "\u00a0" }}
-            </div>
-          </div>
-        </v-card>
+        <BirdTile :img-id="i" :name="getImgBirdName(i)" :latin-name="getImgBirdLatinName(i)"
+          @click="openPhoto(i)"></BirdTile>
       </v-col>
     </v-row>
     <v-pagination class="mb-5 mt-2" :model-value="page" :length="totalPages" rounded="circle"
@@ -144,7 +125,7 @@
       </div>
 
       <div class="position-relative px-4">
-        <v-img :key="photo" :src="getImageUrl(photo)" :alt="getImgBirdName(photo) || $t('a11y.bird_photo')" contain
+        <v-img :key="photo" :src="getImageUrl(photo, 1280)" :alt="getImgBirdName(photo) || $t('a11y.bird_photo')" contain
           max-height="65vh" rounded="xl">
           <template v-slot:placeholder>
             <div class="d-flex align-center justify-center fill-height">
@@ -169,6 +150,8 @@
           <a :href="getImgAuthorLink(photo)" target="_blank" rel="noopener">{{ getImgAuthorName(photo) }}</a>
           ·
           <a :href="getImgCopyrightLink(photo)" target="_blank" rel="noopener">{{ getImgCopyrightName(photo) }}</a>
+          ·
+          <a :href="getImageUrl(photo)" target="_blank" rel="noopener">{{ $t("photo.full_size") }}</a>
         </div>
         <v-btn v-if="getImgBirdName(photo)" variant="tonal" size="small" prepend-icon="mdi-image-multiple-outline"
           @click="showAllPhotosOfBird(photo)">
@@ -184,6 +167,7 @@ import { computed, onMounted, onUnmounted, ref, watch, Ref } from 'vue';
 import { useRoute, useRouter, LocationQuery } from 'vue-router';
 import { useDisplay } from 'vuetify'
 import { getImageUrl, getImages } from '@/api/images';
+import BirdTile from '@/components/BirdTile.vue'
 import { useAppStore } from '@/store/app';
 import { useImagesStore } from '@/store/images'
 import { useSpeciesStore } from '@/store/species'
@@ -467,14 +451,6 @@ function capitalizeFirstLetter(str: string): string {
 </script>
 
 <style scoped>
-.bird-tile {
-  background: transparent;
-}
-
-.tile-placeholder {
-  background: rgba(var(--v-theme-on-surface), 0.08);
-}
-
 .results-bar {
   min-height: 36px;
 }
