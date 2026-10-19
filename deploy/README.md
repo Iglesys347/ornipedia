@@ -83,6 +83,10 @@ It uses the same secrets as the [GitHub Actions deployment](#github-actions-depl
 - `SSH_PRIVATE_KEY` and `ANSIBLE_BECOME_PASSWORD`: same as the production ones
 - `VITE_API_URL` (variable, optional): defaults to `https://next.ornipedia.com/api`
 
+## Administration
+
+The administration page (`/admin`) is enabled by setting `vault_admin_password` in the vault of the instance (see [vault_example.yml](vars/vault_example.yml)); it is disabled when the variable is missing. For the GitHub Actions deployments, add it to the `ANSIBLE_VAULT` secret of the environment.
+
 ## Database migrations
 
 The `api.yml` playbook copies the Alembic migrations on the server but only applies them when `ornipedia_run_migrations` is enabled (as for the next instance). For the production instance, after a deployment containing new migrations, run on the server:

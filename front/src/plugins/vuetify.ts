@@ -76,5 +76,18 @@ export default createVuetify({
       variant: "outlined",
       elevation: 0
     },
+    // same look as the text fields
+    VCombobox: {
+      rounded: 'pill',
+      variant: "outlined"
+    },
+    VFileInput: {
+      rounded: 'pill',
+      variant: "outlined"
+    },
+    VTextarea: {
+      rounded: 'xl',
+      variant: "outlined"
+    },
   },
 })

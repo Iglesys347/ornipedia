@@ -41,6 +41,13 @@ The default settings are defined in [src/settings.py](src/settings.py). They can
 | `ORNIPEDIA_ALLOWED_ORIGINS` | Comma separated list of origins allowed by CORS | none |
 | `ORNIPEDIA_IMAGE_FOLDER` | Folder containing the images | `/path/to/the/image/folder` |
 | `ORNIPEDIA_THUMBNAIL_FOLDER` | Folder where the resized images (`GET /images/{id}?width=320\|640\|1280`) are cached | `<system temp dir>/ornipedia-thumbnails` |
+| `ORNIPEDIA_ADMIN_PASSWORD` | Password of the administration (`/admin` page and `/admin/*` endpoints), the administration is disabled when empty | empty |
+
+## Administration
+
+The `/admin` page of the front adds birds and photos, and deletes photos from the gallery. It uses the `/admin/*` endpoints, protected by `ADMIN_PASSWORD` (sent as `Authorization: Bearer <password>`). Uploaded photos are saved in `IMAGE_FOLDER` under random names.
+
+Use a long random password (e.g. `python -c "import secrets; print(secrets.token_urlsafe(24))"`): each failed attempt is only slowed down by one second.
 
 ## Database migrations
 
