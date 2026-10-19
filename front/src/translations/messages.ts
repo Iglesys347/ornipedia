@@ -17,6 +17,7 @@ export default {
 
         a11y: {
             menu: "Open the menu",
+            home: "Ornipedia, back to the home page",
             filters: "Filters",
             close: "Close",
             bird_photo: "Bird photo",
@@ -27,6 +28,7 @@ export default {
             next: "Next photo",
             credit: "Photo:",
             all_of_bird: "All the photos of this bird",
+            full_size: "Full size",
         },
 
         settings: "Settings",
@@ -52,6 +54,20 @@ export default {
                 title: "Quiz",
                 desc: "Test your knowledge!"
             }   
+        },
+
+        home: {
+            banner_alt: "A golden eagle flying in front of snowy mountains",
+            search: "Search a bird by name",
+            explore: "Explore the gallery",
+            stats: "{photos} photos of {species} species",
+            highlights: "A few birds",
+            see_gallery: "See the whole gallery",
+            by_species: "Explore by species",
+            coming: "Coming soon",
+        },
+        footer: {
+            credits: "Photos under free licenses, the author and license are shown with each photo.",
         },
 
         bird_finder: {
@@ -103,6 +119,7 @@ export default {
 
         a11y: {
             menu: "Ouvrir le menu",
+            home: "Ornipedia, retour à l'accueil",
             filters: "Filtres",
             close: "Fermer",
             bird_photo: "Photo d'oiseau",
@@ -113,6 +130,7 @@ export default {
             next: "Photo suivante",
             credit: "Photo :",
             all_of_bird: "Toutes les photos de cet oiseau",
+            full_size: "Pleine résolution",
         },
 
         settings: "Paramètres",
@@ -138,6 +156,20 @@ export default {
                 title: "Quiz",
                 desc: "Testez vos connaissances !"
             }
+        },
+
+        home: {
+            banner_alt: "Un aigle royal en vol devant des montagnes enneigées",
+            search: "Rechercher un oiseau par son nom",
+            explore: "Explorer la galerie",
+            stats: "{photos} photos de {species} espèces",
+            highlights: "Quelques oiseaux",
+            see_gallery: "Voir toute la galerie",
+            by_species: "Explorer par espèce",
+            coming: "Bientôt disponible",
+        },
+        footer: {
+            credits: "Photos sous licences libres, l'auteur et la licence sont indiqués sur chaque photo.",
         },
 
         bird_finder: {

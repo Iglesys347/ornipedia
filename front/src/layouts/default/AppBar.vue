@@ -1,21 +1,23 @@
 <template>
-    <v-app-bar flat elevation="1">
+    <v-app-bar flat border="b" color="surface">
         <v-btn v-if="!showToolbar" icon="mdi-menu" :aria-label="$t('a11y.menu')"
             @click="appStore.switchNavBar"></v-btn>
-        <v-spacer></v-spacer>
+
+        <router-link to="/" class="brand d-flex align-center text-decoration-none ms-2 me-6"
+            :aria-label="$t('a11y.home')">
+            <v-icon color="primary" size="28">mdi-bird</v-icon>
+            <span class="brand-name ms-2">Ornipedia</span>
+        </router-link>
 
         <v-toolbar-items v-if="showToolbar">
-            <template v-for="(item, index) in navigationItems" :key="item.to">
-                <v-divider v-if="index > 0" vertical></v-divider>
-                <v-btn variant="text" rounded="0" :to="item.soon ? undefined : item.to" :disabled="item.soon">
-                    {{ $t(item.title) }}
-                    <v-chip v-if="item.soon" class="ms-2" size="x-small" variant="tonal">{{ $t('soon') }}</v-chip>
-                </v-btn>
-            </template>
+            <v-btn v-for="item in navigationItems" :key="item.to" variant="text" rounded="0" active-color="primary"
+                :to="item.soon ? undefined : item.to" :disabled="item.soon" :exact="item.to == '/'">
+                {{ $t(item.title) }}
+                <v-chip v-if="item.soon" class="ms-2" size="x-small" variant="tonal">{{ $t('soon') }}</v-chip>
+            </v-btn>
         </v-toolbar-items>
 
         <v-spacer></v-spacer>
-
 
         <v-menu v-model="menu" :close-on-content-click="false" location="end">
             <template v-slot:activator="{ props }">
@@ -81,3 +83,15 @@ const showToolbar = computed(() => {
     return name.value != "xs" && name.value != "sm"
 })
 </script>
+
+<style scoped>
+.brand {
+    color: rgb(var(--v-theme-on-surface));
+}
+
+.brand-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+</style>
