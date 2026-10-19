@@ -9,9 +9,9 @@
     src: "{{ settings_template }}"
     dest: "{{ settings_dest }}"
     mode: "0644"
+  # only the API reads these settings (the NGINX handler is not part of the API playbook)
   notify:
     - Reload Gunicorn
-    - Reload NGINX
 
 - name: Apply the database migrations
   ansible.builtin.command: "{{ venv_path }}/bin/alembic upgrade head"
