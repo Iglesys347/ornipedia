@@ -23,6 +23,12 @@ ALLOWED_ORIGINS = []
 
 IMAGE_FOLDER = "/path/to/the/image/folder"
 
+# password of the administration (adding birds and photos), disabled when empty
+ADMIN_PASSWORD = ""
+
+# maximum size of an uploaded photo
+MAX_UPLOAD_SIZE = 25 * 1024 * 1024
+
 # folder where the resized images are cached
 THUMBNAIL_FOLDER = os.path.join(tempfile.gettempdir(), "ornipedia-thumbnails")
 
@@ -52,3 +58,4 @@ if "ORNIPEDIA_ALLOWED_ORIGINS" in os.environ:
 
 IMAGE_FOLDER = os.environ.get("ORNIPEDIA_IMAGE_FOLDER", IMAGE_FOLDER)
 THUMBNAIL_FOLDER = os.environ.get("ORNIPEDIA_THUMBNAIL_FOLDER", THUMBNAIL_FOLDER)
+ADMIN_PASSWORD = os.environ.get("ORNIPEDIA_ADMIN_PASSWORD", ADMIN_PASSWORD)

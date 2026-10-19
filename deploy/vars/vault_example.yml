@@ -6,3 +6,6 @@ vault_psql_password: "password"
 vault_psql_host: "my.datanase.host.com"
 vault_psql_port: 5432
 vault_psql_db: "db_name"
+
+# password of the administration page (/admin), leave empty to disable it
+vault_admin_password: "a-long-random-password"
