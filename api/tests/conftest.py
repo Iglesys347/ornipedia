@@ -100,3 +100,29 @@ def bird_without_images():
     session.query(Bird).filter(Bird.id == TEST_BIRD_2["id"]).delete()
     session.commit()
     session.close()
+
+
+@pytest.fixture
+def real_image(tmp_path, monkeypatch):
+    """Temporarily adds a real 1000x750 image to the database, with an empty thumbnail cache"""
+    from PIL import Image as PILImage  # pylint: disable=import-outside-toplevel
+
+    monkeypatch.setattr("src.thumbnails.THUMBNAIL_FOLDER", str(tmp_path / "thumbnails"))
+    image_path = tmp_path / "real.png"
+    PILImage.new("RGB", (1000, 750), (120, 160, 90)).save(image_path)
+
+    image = TEST_BIRD_1["images"][0]
+    session = TestingSessionLocal()
+    session.add(Image(
+        id=100,
+        bird_id=TEST_BIRD_1["id"],
+        image_path=str(image_path),
+        original_url="url",
+        author_id=image["author"]["id"],
+        license_id=image["license"]["id"],
+    ))
+    session.commit()
+    yield {"id": 100, "path": image_path, "thumbnails": tmp_path / "thumbnails"}
+    session.query(Image).filter(Image.id == 100).delete()
+    session.commit()
+    session.close()

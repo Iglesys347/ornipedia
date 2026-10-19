@@ -12,3 +12,5 @@ settings_template: "settings_local.py.j2"
 settings_dest: "{{ remote_api_src_dir }}/settings_local.py"
 
 img_folder: "{{ ornipedia_img_folder | default(instance_dir ~ '/images') }}"
+# cache of the resized images (generated on demand by the API)
+thumbnail_folder: "{{ instance_dir }}/thumbnails"

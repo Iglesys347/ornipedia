@@ -5,6 +5,7 @@ deployment) and then by environment variables prefixed with `ORNIPEDIA_`.
 """
 
 import os
+import tempfile
 from urllib.parse import quote_plus
 
 DEV = False
@@ -21,6 +22,9 @@ DB_DEBUG = False
 ALLOWED_ORIGINS = []
 
 IMAGE_FOLDER = "/path/to/the/image/folder"
+
+# folder where the resized images are cached
+THUMBNAIL_FOLDER = os.path.join(tempfile.gettempdir(), "ornipedia-thumbnails")
 
 try:
     from src.settings_local import *  # noqa: F401,F403 pylint: disable=wildcard-import,unused-wildcard-import
@@ -47,3 +51,4 @@ if "ORNIPEDIA_ALLOWED_ORIGINS" in os.environ:
     ]
 
 IMAGE_FOLDER = os.environ.get("ORNIPEDIA_IMAGE_FOLDER", IMAGE_FOLDER)
+THUMBNAIL_FOLDER = os.environ.get("ORNIPEDIA_THUMBNAIL_FOLDER", THUMBNAIL_FOLDER)
