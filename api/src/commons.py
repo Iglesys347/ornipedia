@@ -150,7 +150,8 @@ def _query(params: dict) -> dict:
             response.raise_for_status()
             data = response.json()
     except (httpx.HTTPError, ValueError) as err:
-        raise CommonsError(str(err)) from err
+        # some errors have no message (e.g. timeouts): their type is always given
+        raise CommonsError(f"{type(err).__name__} when querying the Commons API: {err}") from err
     if "error" in data:
         raise CommonsError(str(data["error"]))
     return data

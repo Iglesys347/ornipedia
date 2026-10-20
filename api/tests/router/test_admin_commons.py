@@ -272,3 +272,13 @@ def test_import_mpo_original(client, admin, fake_commons):
     response = import_photo(client, admin, "File:Pica_pica_2.jpg")
     assert response.status_code == 201
     assert os.listdir(admin["images"])[0].endswith(".jpg")
+
+
+def test_commons_error_always_explained(client, admin, monkeypatch):
+    # a timeout has no message: the cause is still given to the administrator
+    def timeout(request):
+        raise httpx.ReadTimeout("")
+    monkeypatch.setattr(commons, "transport", httpx.MockTransport(timeout))
+    response = import_photo(client, admin, "File:Pica_pica_1.jpg")
+    assert response.status_code == 502
+    assert "(ReadTimeout when querying the Commons API" in response.json()["detail"]
