@@ -179,15 +179,20 @@
                   :rules="[required]"></v-text-field>
 
                 <div v-for="lang in supportedLanguages" :key="lang.code" class="mt-2">
-                  <h2 class="text-subtitle-1 font-weight-medium mb-2" :lang="lang.code">{{ lang.name }}</h2>
+                  <h2 class="text-subtitle-1 font-weight-medium mb-2">
+                    <span :lang="lang.code">{{ lang.name }}</span>
+                    <span v-if="lang.code != REQUIRED_LANGUAGE" class="text-medium-emphasis">
+                      ({{ $t("admin.bird.optional") }})
+                    </span>
+                  </h2>
                   <v-row dense>
                     <v-col cols="12" sm="6">
                       <v-text-field v-model="translations[lang.code].name" :label="$t('admin.bird.name')"
-                        :rules="[required]"></v-text-field>
+                        :rules="[requiredFor(lang.code)]"></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6">
                       <v-combobox v-model="translations[lang.code].species" :items="speciesOptions[lang.code]"
-                        :label="$t('admin.bird.species')" :hint="$t('admin.bird.species_hint')" :rules="[required]"
+                        :label="$t('admin.bird.species')" :hint="$t('admin.bird.species_hint')" :rules="[requiredFor(lang.code)]"
                         @update:model-value="loadSubSpecies(lang.code)"></v-combobox>
                     </v-col>
                     <v-col cols="12" sm="6">
@@ -306,7 +311,13 @@ const licenseNames = computed(() => [...new Set(licenses.value.map(l => l.short_
 async function loadBirds() {
   birdsLoading.value = true
   try {
-    birds.value = await getAllBirds(appStore.locale)
+    // in the language of the page, completed by the birds only translated in the required language
+    const [inLocale, inRequired] = await Promise.all([
+      getAllBirds(appStore.locale),
+      appStore.locale == REQUIRED_LANGUAGE ? Promise.resolve([]) : getAllBirds(REQUIRED_LANGUAGE),
+    ])
+    const known = new Set(inLocale.map(b => b.id))
+    birds.value = [...inLocale, ...inRequired.filter(b => !known.has(b.id))]
   } catch (err) {
     notify(requestError(err), true)
   } finally {
@@ -526,6 +537,20 @@ type TranslationFields = { name: string, species: string | null, sub_species: st
 function emptyTranslations(): Record<string, TranslationFields> {
   return Object.fromEntries(supportedLanguages.map(l => [l.code, { name: "", species: null, sub_species: null, details: "" }]))
 }
+// the French translation is required, the others are optional
+const REQUIRED_LANGUAGE = "fr"
+
+// an optional language is started as soon as one of its fields is filled
+function isStarted(lang: string) {
+  const fields = translations.value[lang]
+  return [fields.name, fields.species, fields.sub_species, fields.details].some(v => v && String(v).trim())
+}
+
+// name and species are required for the required language, and for a started optional language
+function requiredFor(lang: string) {
+  return (value: unknown) => (lang != REQUIRED_LANGUAGE && !isStarted(lang)) || required(value)
+}
+
 const birdFormRef: Ref<Form | null> = ref(null)
 const latinName = ref("")
 const translations: Ref<Record<string, TranslationFields>> = ref(emptyTranslations())
@@ -552,7 +577,9 @@ async function submitBird() {
   }
   creatingBird.value = true
   try {
-    const res = await createBird(adminStore.password, latinName.value, supportedLanguages.map(l => ({
+    // the optional languages left empty are not sent
+    const languages = supportedLanguages.filter(l => l.code == REQUIRED_LANGUAGE || isStarted(l.code))
+    const res = await createBird(adminStore.password, latinName.value, languages.map(l => ({
       language_code: l.code,
       name: translations.value[l.code].name,
       species: translations.value[l.code].species ?? "",

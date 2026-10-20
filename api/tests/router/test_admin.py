@@ -165,3 +165,20 @@ def test_add_photo_mpo(client, admin, real_image):
     thumbnail = client.get(f"/images/{response.json()['id']}", params={"width": 320})
     assert thumbnail.headers["content-type"] == "image/jpeg"
     assert PILImage.open(io.BytesIO(thumbnail.content)).size == (320, 240)
+
+
+def test_create_french_only_bird(client, admin):
+    bird = {"latin_name": "Gypaetus barbatus",
+            "translations": [{"language_code": "fr", "name": "gypaète barbu", "species": "rapaces"}]}
+    response = client.post("/admin/birds", json=bird, headers=admin["headers"])
+    assert response.status_code == 201
+    bird_id = response.json()["id"]
+    img_id = client.post(f"/admin/birds/{bird_id}/images", data=PHOTO_FORM,
+                         files={"file": ("p.jpg", image_bytes(), "image/jpeg")}, headers=admin["headers"]).json()["id"]
+
+    # shown in French only
+    assert client.get(f"/birds/{bird_id}", params={"language": "fr"}).json()["name"] == "gypaète barbu"
+    assert client.get(f"/birds/{bird_id}", params={"language": "en"}).status_code == 404
+    assert img_id in client.get("/images", params={"language": "fr", "per_page": 100}).json()["items"]
+    assert img_id not in client.get("/images", params={"language": "en", "per_page": 100}).json()["items"]
+    assert client.get(f"/images/{img_id}/info", params={"language": "en"}).status_code == 404
