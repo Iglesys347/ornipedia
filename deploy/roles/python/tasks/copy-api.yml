@@ -22,3 +22,6 @@
     dest: "{{ remote_api_dir }}/{{ item }}"
     mode: "0644"
   with_items: "{{ python_gitted_files.stdout_lines }}"
+  # the workers must load the new code (graceful reload, no downtime)
+  notify:
+    - Reload Gunicorn
