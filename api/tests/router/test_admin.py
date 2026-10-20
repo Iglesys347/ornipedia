@@ -146,3 +146,22 @@ def test_delete_photo_keeps_files_outside_image_folder(client, admin, real_image
     # photos added before the administration may be stored anywhere: their files are kept
     assert client.delete(f"/admin/images/{real_image['id']}", headers=admin["headers"]).status_code == 204
     assert real_image["path"].is_file()
+
+
+def mpo_bytes():
+    """Photo in the MPO format of some cameras: a JPEG followed by another picture"""
+    buffer = io.BytesIO()
+    first = PILImage.new("RGB", (800, 600), (90, 140, 200))
+    first.save(buffer, "MPO", save_all=True, append_images=[PILImage.new("RGB", (800, 600))])
+    return buffer.getvalue()
+
+
+def test_add_photo_mpo(client, admin, real_image):
+    response = client.post(f"/admin/birds/{TEST_BIRD_1['id']}/images", data=PHOTO_FORM,
+                           files={"file": ("photo.jpg", mpo_bytes(), "image/jpeg")}, headers=admin["headers"])
+    assert response.status_code == 201
+    assert os.listdir(admin["images"])[0].endswith(".jpg")
+    # its thumbnail is the first picture
+    thumbnail = client.get(f"/images/{response.json()['id']}", params={"width": 320})
+    assert thumbnail.headers["content-type"] == "image/jpeg"
+    assert PILImage.open(io.BytesIO(thumbnail.content)).size == (320, 240)

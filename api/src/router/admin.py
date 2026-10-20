@@ -41,7 +41,9 @@ router = APIRouter(
 )
 
 # accepted image formats (Pillow name -> file extension)
-IMAGE_FORMATS = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp"}
+# MPO ("multi picture" JPEG, made by some cameras) is a JPEG followed by other pictures:
+# browsers show it as a JPEG (its first picture)
+IMAGE_FORMATS = {"JPEG": "jpg", "MPO": "jpg", "PNG": "png", "WEBP": "webp"}
 
 
 @router.get("/check")

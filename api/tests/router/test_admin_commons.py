@@ -261,3 +261,14 @@ def test_import_refuses_redirections_elsewhere(client, admin, fake_commons):
     assert response.status_code == 502
     assert all(r.url.host != "example.org" for r in fake_commons.requests)
     assert "Unexpected download URL" in response.json()["detail"]
+
+
+def test_import_mpo_original(client, admin, fake_commons):
+    # small photo: its original file is downloaded, as made by the camera (MPO)
+    from tests.router.test_admin import mpo_bytes  # pylint: disable=import-outside-toplevel
+
+    fake_commons.files["File:Pica_pica_2.jpg"] = image_info("Pica_pica_2", 1200, 900)
+    fake_commons.download_content = mpo_bytes()
+    response = import_photo(client, admin, "File:Pica_pica_2.jpg")
+    assert response.status_code == 201
+    assert os.listdir(admin["images"])[0].endswith(".jpg")
