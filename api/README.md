@@ -47,6 +47,8 @@ The default settings are defined in [src/settings.py](src/settings.py). They can
 
 The `/admin` page of the front adds birds and photos, and deletes photos from the gallery. It uses the `/admin/*` endpoints, protected by `ADMIN_PASSWORD` (sent as `Authorization: Bearer <password>`). Uploaded photos are saved in `IMAGE_FOLDER` under random names.
 
+Photos can be imported from [Wikimedia Commons](https://commons.wikimedia.org): the API searches the files (`GET /admin/commons/search`) and imports the chosen ones (`POST /admin/birds/{id}/commons`), fetching their author and license from Commons itself. The server must be able to reach `commons.wikimedia.org` and `upload.wikimedia.org`; the requests are identified by `COMMONS_USER_AGENT`, as required by the [Wikimedia User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy).
+
 Use a long random password (e.g. `python -c "import secrets; print(secrets.token_urlsafe(24))"`): each failed attempt is only slowed down by one second.
 
 ## Database migrations

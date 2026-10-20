@@ -37,58 +37,137 @@
       <v-window v-model="tab">
         <!-- add a photo to an existing bird -->
         <v-window-item value="photo">
-          <v-form ref="photoFormRef" @submit.prevent="submitPhoto">
-            <v-card>
-              <v-card-text>
-                <v-autocomplete v-model="photoBird" :items="birds" item-value="id" :item-title="birdTitle"
-                  :label="$t('admin.photo.bird')" :loading="birdsLoading" :rules="[required]"
-                  :no-data-text="$t('image_gallery.no_species')" prepend-inner-icon="mdi-bird"></v-autocomplete>
+          <v-card class="mb-4">
+            <v-card-text>
+              <v-autocomplete v-model="photoBird" :items="birds" item-value="id" :item-title="birdTitle"
+                :label="$t('admin.photo.bird')" :loading="birdsLoading" hide-details
+                :no-data-text="$t('image_gallery.no_species')" prepend-inner-icon="mdi-bird"></v-autocomplete>
+            </v-card-text>
+          </v-card>
 
-                <v-file-input v-model="photoFile" accept="image/jpeg,image/png,image/webp"
-                  :label="$t('admin.photo.file')" :hint="$t('admin.photo.file_hint')" persistent-hint show-size
-                  prepend-icon="" prepend-inner-icon="mdi-camera-outline" :rules="[requiredFile, maxSize]"
-                  class="mb-2"></v-file-input>
-                <v-img v-if="previewUrl" :src="previewUrl" max-height="280" class="mb-4" rounded="lg"
-                  :alt="$t('admin.photo.preview')"></v-img>
+          <!-- photos of Wikimedia Commons, their author and license are fetched by the API -->
+          <v-card class="mb-4">
+            <v-card-item prepend-icon="mdi-image-search-outline" :title="$t('admin.commons.title')"
+              :subtitle="$t('admin.commons.subtitle')"></v-card-item>
+            <v-card-text>
+              <v-form @submit.prevent="searchCommons()">
+                <v-text-field v-model="commonsQuery" :label="$t('admin.commons.search')"
+                  :hint="$t('admin.commons.search_hint')" persistent-hint append-inner-icon="mdi-magnify"
+                  :loading="commonsLoading" @click:append-inner="searchCommons()"></v-text-field>
+              </v-form>
 
-                <v-row dense>
-                  <v-col cols="12" sm="6">
-                    <v-combobox v-model="authorName" :items="authorNames" :label="$t('admin.photo.author')"
-                      :rules="[required]" @update:model-value="fillAuthor"></v-combobox>
-                  </v-col>
-                  <v-col cols="12" sm="6">
-                    <v-text-field v-model="authorLink" :label="$t('admin.photo.author_link')"
-                      type="url"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="4">
-                    <v-combobox v-model="licenseShortName" :items="licenseNames" :label="$t('admin.photo.license')"
-                      :rules="[required]" @update:model-value="fillLicense"></v-combobox>
-                  </v-col>
-                  <v-col cols="12" sm="8">
-                    <v-text-field v-model="licenseFullName" :label="$t('admin.photo.license_full')"
-                      :rules="[required]"></v-text-field>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-text-field v-model="licenseLink" :label="$t('admin.photo.license_link')" type="url"
-                      :rules="[required]"></v-text-field>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-text-field v-model="originalUrl" :label="$t('admin.photo.original_url')"
-                      type="url"></v-text-field>
-                  </v-col>
-                </v-row>
+              <v-alert v-if="commonsError" type="error" variant="tonal" class="mt-4">{{ commonsError }}</v-alert>
+              <p v-else-if="commonsSearched && commonsResults.length == 0 && !commonsLoading"
+                class="text-medium-emphasis mt-4">
+                {{ $t("admin.commons.no_result") }}
+              </p>
 
-                <v-progress-linear v-if="uploading" :model-value="uploadProgress" color="primary" height="6"
-                  rounded></v-progress-linear>
-              </v-card-text>
-              <v-card-actions class="px-4 pb-4">
-                <v-spacer></v-spacer>
-                <v-btn type="submit" color="primary" variant="flat" prepend-icon="mdi-upload" :loading="uploading">
-                  {{ $t("admin.photo.submit") }}
+              <v-row v-if="commonsResults.length > 0" class="mt-2">
+                <v-col v-for="photo in commonsResults" :key="photo.title" cols="6" sm="4" md="3">
+                  <v-card class="commons-photo" :disabled="photo.already_added || importing" variant="flat"
+                    :class="{ 'commons-selected': selectedTitles.includes(photo.title) }"
+                    :aria-pressed="selectedTitles.includes(photo.title)" @click="toggleCommonsPhoto(photo)">
+                    <v-img :src="photo.thumbnail_url" :alt="photo.description" :aspect-ratio="4 / 3" cover
+                      rounded="lg">
+                      <template v-slot:placeholder>
+                        <div class="commons-placeholder fill-height"></div>
+                      </template>
+                      <div class="d-flex justify-space-between pa-1">
+                        <v-icon v-if="selectedTitles.includes(photo.title)" color="primary"
+                          class="bg-surface rounded-circle">mdi-check-circle</v-icon>
+                        <v-chip v-else-if="photo.already_added" size="x-small" variant="flat">
+                          {{ $t("admin.commons.already_added") }}
+                        </v-chip>
+                        <span v-else></span>
+                        <v-btn :href="photo.page_url" target="_blank" rel="noopener" icon="mdi-open-in-new"
+                          size="x-small" variant="flat" :aria-label="$t('admin.commons.open')"
+                          @click.stop></v-btn>
+                      </div>
+                    </v-img>
+                    <div class="pa-1 text-caption">
+                      <div class="text-truncate" :title="photo.author_name">{{ photo.author_name }}</div>
+                      <div class="text-truncate text-medium-emphasis">
+                        {{ photo.license_short_name }} · {{ photo.width }}×{{ photo.height }}
+                      </div>
+                    </div>
+                  </v-card>
+                </v-col>
+              </v-row>
+
+              <div v-if="commonsNextOffset !== null" class="text-center mt-2">
+                <v-btn variant="text" :loading="commonsLoading" @click="searchCommons(true)">
+                  {{ $t("admin.commons.more") }}
                 </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-form>
+              </div>
+              <v-progress-linear v-if="importing" :model-value="importProgress" color="primary" height="6"
+                rounded class="mt-4"></v-progress-linear>
+            </v-card-text>
+            <v-card-actions class="px-4 pb-4">
+              <span class="text-body-2 text-medium-emphasis">
+                {{ $t("admin.commons.selected", selectedTitles.length) }}
+              </span>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" variant="flat" prepend-icon="mdi-download" :loading="importing"
+                :disabled="selectedTitles.length == 0" @click="importSelected">
+                {{ $t("admin.commons.import", selectedTitles.length) }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+
+          <v-expansion-panels>
+            <v-expansion-panel :title="$t('admin.photo.upload_title')">
+              <v-expansion-panel-text>
+                <v-form ref="photoFormRef" @submit.prevent="submitPhoto">
+                  <v-card variant="flat">
+                    <v-card-text class="px-0">
+                      <v-file-input v-model="photoFile" accept="image/jpeg,image/png,image/webp"
+                        :label="$t('admin.photo.file')" :hint="$t('admin.photo.file_hint')" persistent-hint show-size
+                        prepend-icon="" prepend-inner-icon="mdi-camera-outline" :rules="[requiredFile, maxSize]"
+                        class="mb-2"></v-file-input>
+                      <v-img v-if="previewUrl" :src="previewUrl" max-height="280" class="mb-4" rounded="lg"
+                        :alt="$t('admin.photo.preview')"></v-img>
+
+                      <v-row dense>
+                        <v-col cols="12" sm="6">
+                          <v-combobox v-model="authorName" :items="authorNames" :label="$t('admin.photo.author')"
+                            :rules="[required]" @update:model-value="fillAuthor"></v-combobox>
+                        </v-col>
+                        <v-col cols="12" sm="6">
+                          <v-text-field v-model="authorLink" :label="$t('admin.photo.author_link')"
+                            type="url"></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                          <v-combobox v-model="licenseShortName" :items="licenseNames" :label="$t('admin.photo.license')"
+                            :rules="[required]" @update:model-value="fillLicense"></v-combobox>
+                        </v-col>
+                        <v-col cols="12" sm="8">
+                          <v-text-field v-model="licenseFullName" :label="$t('admin.photo.license_full')"
+                            :rules="[required]"></v-text-field>
+                        </v-col>
+                        <v-col cols="12">
+                          <v-text-field v-model="licenseLink" :label="$t('admin.photo.license_link')" type="url"
+                            :rules="[required]"></v-text-field>
+                        </v-col>
+                        <v-col cols="12">
+                          <v-text-field v-model="originalUrl" :label="$t('admin.photo.original_url')"
+                            type="url"></v-text-field>
+                        </v-col>
+                      </v-row>
+
+                      <v-progress-linear v-if="uploading" :model-value="uploadProgress" color="primary" height="6"
+                        rounded></v-progress-linear>
+                    </v-card-text>
+                    <v-card-actions class="px-0">
+                      <v-spacer></v-spacer>
+                      <v-btn type="submit" color="primary" variant="flat" prepend-icon="mdi-upload" :loading="uploading">
+                        {{ $t("admin.photo.submit") }}
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-form>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
         </v-window-item>
 
         <!-- add a bird, with a translation per language -->
@@ -148,7 +227,10 @@ import { computed, onUnmounted, reactive, ref, Ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDisplay } from 'vuetify';
 import type { RouteLocationRaw } from 'vue-router';
-import { createBird, getAuthors, getLicenses, uploadPhoto, Author, License } from '@/api/admin';
+import {
+  createBird, getAuthors, getLicenses, importFromCommons, searchCommons as apiSearchCommons, uploadPhoto,
+  Author, CommonsPhoto, License,
+} from '@/api/admin';
 import { getAllBirds, BirdSummary } from '@/api/birds';
 import { useAdminStore, LoginError } from '@/store/admin';
 import { useAppStore } from '@/store/app';
@@ -188,6 +270,9 @@ function requestError(err: unknown): string {
   }
   if (response.status == 413) {
     return t("admin.errors.too_big")
+  }
+  if (response.status == 502) {
+    return t("admin.errors.commons")
   }
   const detail = response.data?.detail
   return typeof detail == "string" ? detail : t("admin.errors.invalid")
@@ -284,7 +369,11 @@ function fillLicense(shortName: string | null) {
 }
 
 async function submitPhoto() {
-  if (!(await photoFormRef.value?.validate())?.valid || !selectedFile.value || photoBird.value === null) {
+  if (photoBird.value === null) {
+    notify(t("admin.photo.choose_bird"), true)
+    return
+  }
+  if (!(await photoFormRef.value?.validate())?.valid || !selectedFile.value) {
     return
   }
   uploading.value = true
@@ -310,6 +399,125 @@ async function submitPhoto() {
     uploading.value = false
   }
 }
+
+// photos of Wikimedia Commons
+const commonsQuery = ref("")
+const commonsResults: Ref<CommonsPhoto[]> = ref([])
+const commonsNextOffset: Ref<number | null> = ref(null)
+const commonsLoading = ref(false)
+const commonsSearched = ref(false)
+const commonsError = ref("")
+const selectedTitles: Ref<string[]> = ref([])
+const importing = ref(false)
+const importProgress = ref(0)
+
+// only the answer of the latest search is used
+let lastSearch = 0
+async function searchCommons(more = false) {
+  const query = commonsQuery.value.trim()
+  if (!query) {
+    return
+  }
+  const request = ++lastSearch
+  commonsLoading.value = true
+  commonsError.value = ""
+  if (!more) {
+    commonsResults.value = []
+    selectedTitles.value = []
+    commonsNextOffset.value = null
+  }
+  try {
+    const res = await apiSearchCommons(adminStore.password, query, more ? commonsNextOffset.value ?? 0 : 0)
+    if (request != lastSearch) {
+      return
+    }
+    const known = new Set(commonsResults.value.map(p => p.title))
+    commonsResults.value = [...commonsResults.value, ...res.data.items.filter(p => !known.has(p.title))]
+    commonsNextOffset.value = res.data.next_offset ?? null
+    commonsSearched.value = true
+  } catch (err) {
+    if (request == lastSearch) {
+      commonsError.value = requestError(err)
+    }
+  } finally {
+    if (request == lastSearch) {
+      commonsLoading.value = false
+    }
+  }
+}
+
+function toggleCommonsPhoto(photo: CommonsPhoto) {
+  if (photo.already_added) {
+    return
+  }
+  const index = selectedTitles.value.indexOf(photo.title)
+  if (index < 0) {
+    selectedTitles.value.push(photo.title)
+  } else {
+    selectedTitles.value.splice(index, 1)
+  }
+}
+
+function markAdded(title: string) {
+  const photo = commonsResults.value.find(p => p.title == title)
+  if (photo) {
+    photo.already_added = true
+  }
+}
+
+// the selected photos are imported one after the other
+async function importSelected() {
+  if (photoBird.value === null) {
+    notify(t("admin.photo.choose_bird"), true)
+    return
+  }
+  const birdId = photoBird.value
+  const titles = [...selectedTitles.value]
+  importing.value = true
+  importProgress.value = 0
+  let added = 0
+  let failed = 0
+  let lastError = ""
+  for (const [index, title] of titles.entries()) {
+    try {
+      await importFromCommons(adminStore.password, birdId, title)
+      added++
+      markAdded(title)
+    } catch (err) {
+      const status = (err as { response?: { status?: number } }).response?.status
+      if (status == 409) {
+        markAdded(title)
+      } else {
+        failed++
+        lastError = requestError(err)
+        if (status == 401) {
+          break
+        }
+      }
+    }
+    importProgress.value = Math.round(100 * (index + 1) / titles.length)
+  }
+  selectedTitles.value = []
+  importing.value = false
+
+  const bird = birds.value.find(b => b.id == birdId)
+  const link = bird ? { path: "/birds", query: { q: bird.name } } : null
+  if (failed > 0) {
+    notify(`${t("admin.commons.import_failed", { added, failed })} ${lastError}`, true, added > 0 ? link : null)
+  } else {
+    notify(t("admin.commons.imported", added), false, link)
+  }
+  loadAuthorsAndLicenses()
+}
+
+// choosing a bird searches its photos (by latin name)
+watch(photoBird, (birdId) => {
+  const bird = birds.value.find(b => b.id == birdId)
+  if (bird) {
+    commonsQuery.value = bird.latin_name
+    searchCommons()
+  }
+})
 
 // bird form
 type TranslationFields = { name: string, species: string | null, sub_species: string | null, details: string }
@@ -380,5 +588,18 @@ watch(() => appStore.locale, () => adminStore.loggedIn && loadBirds())
 <style scoped>
 .admin {
   max-width: 900px;
+}
+
+.commons-photo {
+  outline: 2px solid transparent;
+  transition: outline-color 0.15s;
+}
+
+.commons-selected {
+  outline-color: rgb(var(--v-theme-primary));
+}
+
+.commons-placeholder {
+  background: rgba(var(--v-theme-on-surface), 0.08);
 }
 </style>

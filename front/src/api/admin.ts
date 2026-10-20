@@ -64,3 +64,31 @@ export function uploadPhoto(password: string, birdId: number, file: File, form: 
 export function deletePhoto(password: string, imgId: number) {
     return instance.delete(`/admin/images/${imgId}`, auth(password))
 }
+
+// photo of Wikimedia Commons, with its author and license
+export type CommonsPhoto = {
+    title: string
+    page_url: string
+    thumbnail_url: string
+    width: number
+    height: number
+    description: string
+    author_name: string
+    author_link: string | null
+    license_short_name: string
+    license_full_name: string
+    license_link: string
+    already_added: boolean
+}
+
+export function searchCommons(password: string, query: string, offset = 0, limit = 10) {
+    return instance.get<{ items: CommonsPhoto[], next_offset: number | null }>("/admin/commons/search", {
+        ...auth(password),
+        params: { q: query, offset, limit },
+    })
+}
+
+// the API downloads the photo and its information from Commons
+export function importFromCommons(password: string, birdId: number, title: string) {
+    return instance.post<{ id: number, bird_id: number }>(`/admin/birds/${birdId}/commons`, { title }, auth(password))
+}
