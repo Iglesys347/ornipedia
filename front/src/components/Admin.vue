@@ -272,7 +272,9 @@ function requestError(err: unknown): string {
     return t("admin.errors.too_big")
   }
   if (response.status == 502) {
-    return t("admin.errors.commons")
+    // the API gives the cause between parentheses (HTTP status, URL...)
+    const cause = String(response.data?.detail ?? "").match(/\((.*)\)$/)?.[1]
+    return cause ? `${t("admin.errors.commons")} (${cause})` : t("admin.errors.commons")
   }
   const detail = response.data?.detail
   return typeof detail == "string" ? detail : t("admin.errors.invalid")

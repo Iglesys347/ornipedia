@@ -31,6 +31,7 @@ def image_info(name, width, height, mime="image/jpeg", artist=None, license_url=
     return {
         "width": width,
         "height": height,
+        "size": 5_000_000,
         "mime": mime,
         "url": f"{UPLOAD}/a/ab/{name}.jpg",
         "thumburl": f"{UPLOAD}/thumb/a/ab/{name}.jpg/640px-{name}.jpg",
@@ -66,11 +67,14 @@ class FakeCommons:
         self.requests = []
         self.files = {}  # title -> imageinfo
         self.download_content = jpeg()
+        # answers of the upload server by URL (default: the photo)
+        self.upload_answers = {}
 
     def handler(self, request: httpx.Request) -> httpx.Response:
         self.requests.append(request)
-        if request.url.host == "upload.wikimedia.org":
-            return httpx.Response(200, content=self.download_content)
+        if request.url.host != "commons.wikimedia.org":
+            answer = self.upload_answers.get(str(request.url))
+            return answer(request) if answer else httpx.Response(200, content=self.download_content)
         params = parse_qs(request.url.query.decode())
         if "generator" in params:
             return httpx.Response(200, json=SEARCH_ANSWER)
@@ -140,9 +144,9 @@ def test_import(client, admin, fake_commons):
     assert response.status_code == 201
     img_id = response.json()["id"]
 
-    # bigger than 2560px: the 2560px version is downloaded
+    # bigger than 1920px (a standard thumbnail width): the 1920px version is downloaded
     download = fake_commons.requests[-1]
-    assert download.url.host == "upload.wikimedia.org" and "2560px-" in str(download.url)
+    assert download.url.host == "upload.wikimedia.org" and "1920px-" in str(download.url)
     info = client.get(f"/images/{img_id}/info", params={"language": "en"}).json()
     assert info["author"] == {"name": "Jane & Co", "link": "https://commons.wikimedia.org/wiki/User:Jane"}
     assert info["license"]["short_name"] == "CC BY-SA 4.0"
@@ -201,3 +205,59 @@ def test_import_not_an_image(client, admin, fake_commons):
 def test_import_invalid(client, admin, fake_commons, bird_id, title, expected):
     response = client.post(f"/admin/birds/{bird_id}/commons", json={"title": title}, headers=admin["headers"])
     assert response.status_code == expected
+
+
+def thumbnail_url(name, width=1920):
+    return f"{UPLOAD}/thumb/a/ab/{name}.jpg/{width}px-{name}.jpg"
+
+
+def import_photo(client, admin, title):
+    return client.post(f"/admin/birds/{TEST_BIRD_1['id']}/commons", json={"title": title},
+                       headers=admin["headers"])
+
+
+def test_search_uses_standard_thumbnail_width(client, admin, fake_commons):
+    client.get("/admin/commons/search", params={"q": "Pica"}, headers=admin["headers"])
+    assert parse_qs(fake_commons.requests[0].url.query.decode())["iiurlwidth"] == ["500"]
+
+
+def test_import_falls_back_to_the_original(client, admin, fake_commons):
+    # the resized version is refused (e.g. rate limited): the original is downloaded
+    fake_commons.files["File:Pica_pica_1.jpg"] = image_info("Pica_pica_1", 4000, 3000)
+    fake_commons.upload_answers[thumbnail_url("Pica_pica_1")] = lambda r: httpx.Response(429)
+    response = import_photo(client, admin, "File:Pica_pica_1.jpg")
+    assert response.status_code == 201
+    assert [str(r.url) for r in fake_commons.requests[-2:]] == [
+        thumbnail_url("Pica_pica_1"), f"{UPLOAD}/a/ab/Pica_pica_1.jpg"]
+
+
+def test_import_original_too_big_for_the_fallback(client, admin, fake_commons):
+    info = image_info("Pica_pica_1", 4000, 3000)
+    info["size"] = 100_000_000
+    fake_commons.files["File:Pica_pica_1.jpg"] = info
+    fake_commons.upload_answers[thumbnail_url("Pica_pica_1")] = lambda r: httpx.Response(429)
+    response = import_photo(client, admin, "File:Pica_pica_1.jpg")
+    assert response.status_code == 502
+    # the cause is given to the administrator
+    assert "HTTP 429" in response.json()["detail"]
+    assert all(str(r.url) != f"{UPLOAD}/a/ab/Pica_pica_1.jpg" for r in fake_commons.requests)
+
+
+def test_import_follows_redirections_on_the_upload_server(client, admin, fake_commons):
+    fake_commons.files["File:Pica_pica_2.jpg"] = image_info("Pica_pica_2", 1200, 900)
+    original = f"{UPLOAD}/a/ab/Pica_pica_2.jpg"
+    fake_commons.upload_answers[original] = lambda r: httpx.Response(
+        302, headers={"location": "/wikipedia/commons/a/ab/Pica_pica_2_moved.jpg"})
+    response = import_photo(client, admin, "File:Pica_pica_2.jpg")
+    assert response.status_code == 201
+    assert str(fake_commons.requests[-1].url) == f"{UPLOAD}/a/ab/Pica_pica_2_moved.jpg"
+
+
+def test_import_refuses_redirections_elsewhere(client, admin, fake_commons):
+    fake_commons.files["File:Pica_pica_2.jpg"] = image_info("Pica_pica_2", 1200, 900)
+    fake_commons.upload_answers[f"{UPLOAD}/a/ab/Pica_pica_2.jpg"] = lambda r: httpx.Response(
+        302, headers={"location": "https://example.org/evil.jpg"})
+    response = import_photo(client, admin, "File:Pica_pica_2.jpg")
+    assert response.status_code == 502
+    assert all(r.url.host != "example.org" for r in fake_commons.requests)
+    assert "Unexpected download URL" in response.json()["detail"]

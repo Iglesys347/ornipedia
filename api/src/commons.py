@@ -13,9 +13,12 @@ API_URL = "https://commons.wikimedia.org/w/api.php"
 # photos are only downloaded from the Wikimedia upload server
 DOWNLOAD_HOST = "upload.wikimedia.org"
 # width of the thumbnails shown in the search results
-THUMBNAIL_WIDTH = 640
+# Wikimedia only serves some thumbnail widths reliably (the "standard" widths: 500, 960,
+# 1280, 1920...); other widths are generated on demand and may be refused or rate limited
+THUMBNAIL_WIDTH = 500
 # bigger photos are downloaded at this width (originals can be very large)
-DOWNLOAD_WIDTH = 2560
+DOWNLOAD_WIDTH = 1920
+MAX_REDIRECTS = 3
 # the search ignores small images (icons, maps...)
 MIN_WIDTH = 800
 SUPPORTED_MIME_TYPES = ("image/jpeg", "image/png", "image/webp")
@@ -39,6 +42,9 @@ class CommonsPhoto:  # pylint: disable=too-many-instance-attributes
     page_url: str
     thumbnail_url: str
     download_url: str
+    # the original file and its size in bytes, used when the resized version cannot be downloaded
+    original_url: str
+    size: int
     width: int
     height: int
     description: str
@@ -112,6 +118,8 @@ def _parse_page(page: dict) -> CommonsPhoto | None:
         page_url=page_url,
         thumbnail_url=resized_url,
         download_url=resized_url,
+        original_url=_absolute(info.get("url")) or resized_url,
+        size=info.get("size", 0),
         width=width,
         height=height,
         description=description or page.get("title", "").removeprefix("File:"),
@@ -186,26 +194,51 @@ def get_photo(title: str) -> CommonsPhoto | None:
     photo = _parse_page(pages[0])
     if photo is not None and photo.width <= DOWNLOAD_WIDTH:
         # smaller than the download width: the original
-        photo.download_url = _absolute(pages[0]["imageinfo"][0].get("url")) or photo.download_url
+        photo.download_url = photo.original_url
     return photo
 
 
-def download(photo: CommonsPhoto, max_size: int) -> bytes:
-    """Content of the photo, only from the Wikimedia upload server and up to `max_size` bytes."""
-    url = urlparse(photo.download_url)
-    if url.scheme != "https" or url.hostname != DOWNLOAD_HOST:
-        raise CommonsError(f"Unexpected download URL: {photo.download_url}")
-    content = bytearray()
-    try:
-        # no redirection: the photo must come from the upload server
-        with _client(follow_redirects=False) as client, client.stream(
-            "GET", photo.download_url
-        ) as response:
-            response.raise_for_status()
+def _check_download_url(url: str):
+    parsed = urlparse(url)
+    if parsed.scheme != "https" or parsed.hostname != DOWNLOAD_HOST:
+        raise CommonsError(f"Unexpected download URL: {url}")
+
+
+def _fetch(client: httpx.Client, url: str, max_size: int) -> bytes:
+    """Content of the URL, following the redirections only on the upload server."""
+    for _ in range(MAX_REDIRECTS + 1):
+        _check_download_url(url)
+        with client.stream("GET", url) as response:
+            if response.is_redirect:
+                # relative to the URL of the answer (not to Commons)
+                url = str(response.url.join(response.headers.get("location", "")))
+                continue
+            if response.status_code != 200:
+                raise CommonsError(f"HTTP {response.status_code} when downloading {url}")
+            content = bytearray()
             for chunk in response.iter_bytes():
                 content.extend(chunk)
                 if len(content) > max_size:
                     raise CommonsPhotoTooBig("The photo is too big")
-    except httpx.HTTPError as err:
-        raise CommonsError(str(err)) from err
-    return bytes(content)
+            return bytes(content)
+    raise CommonsError(f"Too many redirections when downloading {url}")
+
+
+def download(photo: CommonsPhoto, max_size: int) -> bytes:
+    """Content of the photo, only from the Wikimedia upload server and up to `max_size` bytes.
+    The original file is used when its resized version cannot be downloaded."""
+    urls = [photo.download_url]
+    if photo.original_url != photo.download_url and 0 < photo.size <= max_size:
+        urls.append(photo.original_url)
+    errors = []
+    with _client(follow_redirects=False) as client:
+        for url in urls:
+            try:
+                return _fetch(client, url, max_size)
+            except CommonsPhotoTooBig:
+                raise
+            except CommonsError as err:
+                errors.append(str(err))
+            except httpx.HTTPError as err:
+                errors.append(f"{type(err).__name__} when downloading {url}: {err}")
+    raise CommonsError("; ".join(errors))

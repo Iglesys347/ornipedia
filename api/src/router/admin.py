@@ -1,5 +1,6 @@
 """Administration: adding birds and photos, deleting photos (password protected)."""
 
+import logging
 import os
 import uuid
 from dataclasses import asdict, dataclass
@@ -23,6 +24,8 @@ from src.models.admin import (
 from src.models.responses import ErrorMessage
 from src.models.schemas import ImageWoPath
 from src import thumbnails
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/admin",
@@ -230,6 +233,14 @@ def create_image(  # pylint: disable=too-many-arguments,too-many-positional-argu
 COMMONS_UNREACHABLE = "Wikimedia Commons cannot be reached, try again later"
 
 
+def _commons_error(err: Exception) -> HTTPException:
+    """502 error giving the cause (logged, and shown to the administrator)."""
+    logger.warning("Wikimedia Commons error: %s", err)
+    return HTTPException(
+        status_code=status.HTTP_502_BAD_GATEWAY, detail=f"{COMMONS_UNREACHABLE} ({err})"
+    )
+
+
 @router.get(
     "/commons/search",
     response_model=CommonsSearchOut,
@@ -249,9 +260,7 @@ def search_commons(
     try:
         photos, next_offset = commons.search(q.strip(), limit, offset)
     except commons.CommonsError as err:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY, detail=COMMONS_UNREACHABLE
-        ) from err
+        raise _commons_error(err) from err
     page_urls = [photo.page_url for photo in photos]
     added = (
         {
@@ -291,9 +300,7 @@ def import_from_commons(bird_id: int, body: CommonsImport, db: Session = Depends
     try:
         photo = commons.get_photo(body.title)
     except commons.CommonsError as err:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY, detail=COMMONS_UNREACHABLE
-        ) from err
+        raise _commons_error(err) from err
     if photo is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -310,9 +317,7 @@ def import_from_commons(bird_id: int, body: CommonsImport, db: Session = Depends
             status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="The photo is too big"
         ) from err
     except commons.CommonsError as err:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY, detail=COMMONS_UNREACHABLE
-        ) from err
+        raise _commons_error(err) from err
 
     image = _save_photo(
         db,
