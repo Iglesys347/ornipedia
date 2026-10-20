@@ -51,3 +51,29 @@ class LicenseOut(BaseModel):
     short_name: str
     full_name: str
     link: str
+
+
+class CommonsPhotoOut(BaseModel):
+    title: str
+    page_url: str
+    thumbnail_url: str
+    width: int
+    height: int
+    description: str
+    author_name: str
+    author_link: str | None = None
+    license_short_name: str
+    license_full_name: str
+    license_link: str
+    # this photo is already in Ornipedia
+    already_added: bool
+
+
+class CommonsSearchOut(BaseModel):
+    items: list[CommonsPhotoOut]
+    # offset of the next results, None when there are no more results
+    next_offset: int | None = None
+
+
+class CommonsImport(BaseModel):
+    title: str = Field(pattern=r"^File:.+", max_length=300)

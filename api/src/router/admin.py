@@ -2,16 +2,24 @@
 
 import os
 import uuid
+from dataclasses import asdict, dataclass
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from PIL import Image as PILImage, UnidentifiedImageError
 from sqlalchemy.orm import Session
 
-from src import settings
+from src import commons, settings
 from src.auth import require_admin
 from src.dependencies import get_db
 from src.database import db_models
-from src.models.admin import AuthorOut, BirdCreated, BirdIn, LicenseOut
+from src.models.admin import (
+    AuthorOut,
+    BirdCreated,
+    BirdIn,
+    CommonsImport,
+    CommonsSearchOut,
+    LicenseOut,
+)
 from src.models.responses import ErrorMessage
 from src.models.schemas import ImageWoPath
 from src import thumbnails
@@ -66,7 +74,7 @@ def _read_upload(file: UploadFile) -> bytes:
     content = file.file.read(settings.MAX_UPLOAD_SIZE + 1)
     if len(content) > settings.MAX_UPLOAD_SIZE:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f"The photo must not exceed {settings.MAX_UPLOAD_SIZE // (1024 * 1024)} MB",
         )
     return content
@@ -122,20 +130,72 @@ def _get_or_create_license(
     return img_license
 
 
+@dataclass
+class PhotoCredits:
+    author_name: str
+    author_link: str | None
+    license_short_name: str
+    license_full_name: str
+    license_link: str
+    original_url: str
+
+
+def _save_photo(
+    db: Session, bird_id: int, content: bytes, photo_credits: PhotoCredits
+) -> db_models.Image:
+    """Saves a photo in IMAGE_FOLDER under a random name and adds it to the bird.
+    Nothing is kept if the photo is invalid or the database update fails."""
+    os.makedirs(settings.IMAGE_FOLDER, exist_ok=True)
+    tmp_path = os.path.join(settings.IMAGE_FOLDER, f".upload-{uuid.uuid4().hex}")
+    with open(tmp_path, "wb") as tmp_file:
+        tmp_file.write(content)
+    image_path = None
+    try:
+        extension = _image_extension(tmp_path)
+        image_path = os.path.join(settings.IMAGE_FOLDER, f"{uuid.uuid4().hex}.{extension}")
+        os.replace(tmp_path, image_path)
+
+        author = _get_or_create_author(
+            db, photo_credits.author_name.strip(), (photo_credits.author_link or "").strip() or None
+        )
+        img_license = _get_or_create_license(
+            db,
+            photo_credits.license_short_name.strip(),
+            photo_credits.license_full_name.strip(),
+            photo_credits.license_link.strip(),
+        )
+        image = db_models.Image(
+            bird_id=bird_id,
+            author_id=author.id,
+            license_id=img_license.id,
+            image_path=image_path,
+            original_url=photo_credits.original_url.strip(),
+        )
+        db.add(image)
+        db.commit()
+    except BaseException:
+        db.rollback()
+        for path in (tmp_path, image_path):
+            if path and os.path.exists(path):
+                os.remove(path)
+        raise
+    return image
+
+
 @router.post(
     "/birds/{bird_id}/images",
     response_model=ImageWoPath,
     status_code=status.HTTP_201_CREATED,
     responses={
         status.HTTP_404_NOT_FOUND: {"model": ErrorMessage, "description": "Bird not found"},
-        status.HTTP_413_REQUEST_ENTITY_TOO_LARGE: {
+        status.HTTP_413_CONTENT_TOO_LARGE: {
             "model": ErrorMessage,
             "description": "Photo too big",
         },
     },
 )
 # the form fields are separate arguments (FastAPI form parameters)
-def create_image(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+def create_image(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     bird_id: int,
     file: UploadFile = File(description="JPEG, PNG or WebP photo"),
     author_name: str = Form(min_length=1, max_length=200),
@@ -151,35 +211,122 @@ def create_image(  # pylint: disable=too-many-arguments,too-many-positional-argu
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bird not found")
 
     content = _read_upload(file)
-    os.makedirs(settings.IMAGE_FOLDER, exist_ok=True)
-    tmp_path = os.path.join(settings.IMAGE_FOLDER, f".upload-{uuid.uuid4().hex}")
-    with open(tmp_path, "wb") as tmp_file:
-        tmp_file.write(content)
-    image_path = None
-    try:
-        extension = _image_extension(tmp_path)
-        image_path = os.path.join(settings.IMAGE_FOLDER, f"{uuid.uuid4().hex}.{extension}")
-        os.replace(tmp_path, image_path)
+    image = _save_photo(
+        db,
+        bird_id,
+        content,
+        PhotoCredits(
+            author_name=author_name,
+            author_link=author_link,
+            license_short_name=license_short_name,
+            license_full_name=license_full_name,
+            license_link=license_link,
+            original_url=original_url,
+        ),
+    )
+    return {"id": image.id, "bird_id": image.bird_id}
 
-        author = _get_or_create_author(db, author_name.strip(), (author_link or "").strip() or None)
-        img_license = _get_or_create_license(
-            db, license_short_name.strip(), license_full_name.strip(), license_link.strip()
+
+COMMONS_UNREACHABLE = "Wikimedia Commons cannot be reached, try again later"
+
+
+@router.get(
+    "/commons/search",
+    response_model=CommonsSearchOut,
+    responses={
+        status.HTTP_502_BAD_GATEWAY: {"model": ErrorMessage, "description": "Commons unreachable"}
+    },
+)
+def search_commons(
+    q: str = Query(
+        min_length=1, max_length=200, description="Name of the bird (the latin name works best)"
+    ),
+    limit: int = Query(default=10, ge=1, le=20),
+    offset: int = Query(default=0, ge=0, le=1000),
+    db: Session = Depends(get_db),
+):
+    """Photos of Wikimedia Commons matching the query, with their author and license."""
+    try:
+        photos, next_offset = commons.search(q.strip(), limit, offset)
+    except commons.CommonsError as err:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail=COMMONS_UNREACHABLE
+        ) from err
+    page_urls = [photo.page_url for photo in photos]
+    added = (
+        {
+            url
+            for (url,) in db.query(db_models.Image.original_url)
+            .filter(db_models.Image.original_url.in_(page_urls))
+            .all()
+        }
+        if page_urls
+        else set()
+    )
+    return {
+        "items": [{**asdict(photo), "already_added": photo.page_url in added} for photo in photos],
+        "next_offset": next_offset,
+    }
+
+
+@router.post(
+    "/birds/{bird_id}/commons",
+    response_model=ImageWoPath,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorMessage,
+            "description": "Bird or photo not found",
+        },
+        status.HTTP_409_CONFLICT: {"model": ErrorMessage, "description": "Photo already added"},
+        status.HTTP_413_CONTENT_TOO_LARGE: {"model": ErrorMessage, "description": "Photo too big"},
+        status.HTTP_502_BAD_GATEWAY: {"model": ErrorMessage, "description": "Commons unreachable"},
+    },
+)
+def import_from_commons(bird_id: int, body: CommonsImport, db: Session = Depends(get_db)):
+    """Adds a photo of Wikimedia Commons to a bird. The photo and its author and license
+    are fetched from Commons by the API (only the title of the file is sent)."""
+    if db.get(db_models.Bird, bird_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bird not found")
+    try:
+        photo = commons.get_photo(body.title)
+    except commons.CommonsError as err:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail=COMMONS_UNREACHABLE
+        ) from err
+    if photo is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This file is not a usable photo on Wikimedia Commons",
         )
-        image = db_models.Image(
-            bird_id=bird_id,
-            author_id=author.id,
-            license_id=img_license.id,
-            image_path=image_path,
-            original_url=original_url.strip(),
+    if db.query(db_models.Image).filter(db_models.Image.original_url == photo.page_url).first():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="This photo is already in Ornipedia"
         )
-        db.add(image)
-        db.commit()
-    except BaseException:
-        db.rollback()
-        for path in (tmp_path, image_path):
-            if path and os.path.exists(path):
-                os.remove(path)
-        raise
+    try:
+        content = commons.download(photo, settings.MAX_UPLOAD_SIZE)
+    except commons.CommonsPhotoTooBig as err:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="The photo is too big"
+        ) from err
+    except commons.CommonsError as err:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail=COMMONS_UNREACHABLE
+        ) from err
+
+    image = _save_photo(
+        db,
+        bird_id,
+        content,
+        PhotoCredits(
+            author_name=photo.author_name[:200],
+            author_link=photo.author_link,
+            license_short_name=photo.license_short_name[:100],
+            license_full_name=photo.license_full_name[:200],
+            license_link=photo.license_link,
+            original_url=photo.page_url,
+        ),
+    )
     return {"id": image.id, "bird_id": image.bird_id}
 
 

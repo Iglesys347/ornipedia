@@ -29,6 +29,9 @@ ADMIN_PASSWORD = ""
 # maximum size of an uploaded photo
 MAX_UPLOAD_SIZE = 25 * 1024 * 1024
 
+# identification of the requests to Wikimedia Commons (required by the Wikimedia policy)
+COMMONS_USER_AGENT = "Ornipedia/1.0 (https://github.com/Iglesys347/ornipedia)"
+
 # folder where the resized images are cached
 THUMBNAIL_FOLDER = os.path.join(tempfile.gettempdir(), "ornipedia-thumbnails")
 
