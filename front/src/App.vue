@@ -1,8 +1,6 @@
 <template>
   <v-app :theme="appStore.getTheme()">
-    <v-main>
-      <router-view />
-    </v-main>
+    <router-view />
   </v-app>
 </template>
 

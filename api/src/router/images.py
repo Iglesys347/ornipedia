@@ -9,6 +9,8 @@ from src.dependencies import get_db
 from src.models.responses import MAX_PER_PAGE, ErrorMessage, PaginatedResponse
 from src.models.schemas import AuthorInfo, Bird, ImageWoPath, ImageInfo, LicenseInfo
 
+from src.thumbnails import THUMBNAIL_WIDTHS, get_thumbnail
+
 from src.database.crud import (
     get_image,
     get_images_ids,
@@ -17,6 +19,9 @@ from src.database.crud import (
     get_image_info,
 )
 
+
+# browsers may keep the images one week
+IMAGE_CACHE_MAX_AGE = 7 * 24 * 3600
 
 router = APIRouter(
     prefix="/images",
@@ -92,15 +97,31 @@ router.add_api_route(
 )
 def read_image(
     img_id: int,
+    width: int | None = Query(
+        default=None,
+        description=f"Width of the returned image, one of {', '.join(map(str, THUMBNAIL_WIDTHS))}"
+        " (the original image is returned when not given)",
+    ),
     db: Session = Depends(get_db),
 ):
+    if width is not None and width not in THUMBNAIL_WIDTHS:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"width must be one of {', '.join(map(str, THUMBNAIL_WIDTHS))}",
+        )
     image = get_image(db, img_id=img_id)
     if not image or not path.isfile(str(image.image_path)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Image not found",
         )
-    return FileResponse(str(image.image_path))
+    file_path = str(image.image_path)
+    if width is not None:
+        # falls back to the original image if it cannot be resized
+        file_path = get_thumbnail(file_path, img_id, width) or file_path
+    # an image never changes for a given id
+    cache_control = f"public, max-age={IMAGE_CACHE_MAX_AGE}"
+    return FileResponse(file_path, headers={"Cache-Control": cache_control})
 
 
 @router.get(

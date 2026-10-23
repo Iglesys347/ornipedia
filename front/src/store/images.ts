@@ -28,17 +28,16 @@ export const useImagesStore = defineStore('images', () => {
     return imagesInfo.value[imgId][lang]
   }
 
+  // the missing information is fetched in parallel, an image whose information
+  // cannot be fetched is simply left without information
   async function fetchImageInfo(imgIds: number[], lang: string) {
-    for (const i of imgIds) {
-      if (imageInfoExists(i, lang)) {
-        continue
+    const missing = imgIds.filter(i => !imageInfoExists(i, lang))
+    const results = await Promise.all(missing.map(i => apiGetImageInfo(i, lang).catch(() => null)))
+    results.forEach((res, index) => {
+      if (res && res.status == 200) {
+        setImageInfo(missing[index], lang, res.data)
       }
-      const res = await apiGetImageInfo(i, lang)
-      if (res.status != 200) {
-        return null
-      }
-      setImageInfo(i, lang, res.data)
-    }
+    })
   }
 
   return { getImageInfo, fetchImageInfo }

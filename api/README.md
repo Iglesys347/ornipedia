@@ -40,6 +40,7 @@ The default settings are defined in [src/settings.py](src/settings.py). They can
 | `ORNIPEDIA_DB_DEBUG` | Log the SQL queries (`true`/`false`) | `false` |
 | `ORNIPEDIA_ALLOWED_ORIGINS` | Comma separated list of origins allowed by CORS | none |
 | `ORNIPEDIA_IMAGE_FOLDER` | Folder containing the images | `/path/to/the/image/folder` |
+| `ORNIPEDIA_THUMBNAIL_FOLDER` | Folder where the resized images (`GET /images/{id}?width=320\|640\|1280`) are cached | `<system temp dir>/ornipedia-thumbnails` |
 
 ## Database migrations
 

@@ -23,8 +23,16 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           ANSIBLE_BECOME_PASSWORD: ${{ secrets.ANSIBLE_BECOME_PASSWORD }}
         run: |
-          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/private_key.pem"
+          # Windows line endings (key copied from Windows) make the key unreadable
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$RUNNER_TEMP/private_key.pem"
           chmod 600 "$RUNNER_TEMP/private_key.pem"
+          # the key must be a private key without passphrase: checked here with a clear message
+          if ! ssh-keygen -y -P "" -f "$RUNNER_TEMP/private_key.pem" > "$RUNNER_TEMP/public_key.pub"; then
+            echo "::error::SSH_PRIVATE_KEY is not a private key without passphrase. Copy the whole private key file (not the .pub), BEGIN and END lines included."
+            exit 1
+          fi
+          # public information, to compare with the authorized keys of the server (ssh-keygen -lf)
+          echo "SSH key fingerprint: $(ssh-keygen -lf "$RUNNER_TEMP/public_key.pub")"
           printf '%s\n' "$ANSIBLE_BECOME_PASSWORD" > "$RUNNER_TEMP/become_password"
           chmod 600 "$RUNNER_TEMP/become_password"
 
@@ -68,4 +76,4 @@ jobs:
 
       - name: Clean up secrets
         if: always()
-        run: rm -f "$RUNNER_TEMP/private_key.pem" "$RUNNER_TEMP/become_password" deploy/inventory.ini deploy/vars/vault.yml
+        run: rm -f "$RUNNER_TEMP/private_key.pem" "$RUNNER_TEMP/public_key.pub" "$RUNNER_TEMP/become_password" deploy/inventory.ini deploy/vars/vault.yml

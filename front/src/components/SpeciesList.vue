@@ -1,7 +1,7 @@
 <template>
   <v-row>
     <v-col v-for="(imgId, s) in species" :key="s" class="d-flex child-flex" cols="4">
-      <v-img :src="getImageUrl(imgId as number)" aspect-ratio="1" cover class="cursor-pointer">
+      <v-img :src="getImageUrl(imgId as number, 640)" aspect-ratio="1" cover class="cursor-pointer">
         <v-slide-y-reverse-transition>
           <v-card class="d-flex flex-column bg-transparent" elevation="0" rounded="0" style="height: 100%;">
             <v-spacer></v-spacer>
