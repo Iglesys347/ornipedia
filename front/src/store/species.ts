@@ -67,5 +67,11 @@ export const useSpeciesStore = defineStore('species', () => {
   }
 
 
-  return { getSpecies, getSubSpecies }
+  // to call when a bird is added (its species may be new)
+  function clear() {
+    species.value = {}
+    subSpecies.value = {}
+  }
+
+  return { getSpecies, getSubSpecies, clear }
 })

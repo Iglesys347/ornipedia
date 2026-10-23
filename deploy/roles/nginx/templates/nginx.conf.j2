@@ -28,6 +28,8 @@ server {
         }
 
         location /api {
+                # photos uploaded by the administration (the API refuses more than 25 MB)
+                client_max_body_size 26m;
                 rewrite ^/api(.*)$ $1 break;
                 proxy_pass {{ socket_server }};
                 proxy_set_header Host $host;

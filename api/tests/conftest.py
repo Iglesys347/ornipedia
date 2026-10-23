@@ -2,7 +2,7 @@ import pytest
 
 from fastapi.testclient import TestClient
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -124,5 +124,26 @@ def real_image(tmp_path, monkeypatch):
     session.commit()
     yield {"id": 100, "path": image_path, "thumbnails": tmp_path / "thumbnails"}
     session.query(Image).filter(Image.id == 100).delete()
+    session.commit()
+    session.close()
+
+
+ADMIN_PASSWORD = "test-admin-password"
+
+
+@pytest.fixture
+def admin(tmp_path, monkeypatch):
+    """Enables the administration and removes everything created by the test"""
+    monkeypatch.setattr("src.settings.ADMIN_PASSWORD", ADMIN_PASSWORD)
+    monkeypatch.setattr("src.settings.IMAGE_FOLDER", str(tmp_path / "images"))
+    monkeypatch.setattr("src.thumbnails.THUMBNAIL_FOLDER", str(tmp_path / "thumbnails"))
+    monkeypatch.setattr("src.auth.FAILED_LOGIN_DELAY", 0)
+
+    models = [Image, Translation, Bird, ImageAuthor, ImageLicense]
+    session = TestingSessionLocal()
+    last_ids = {model: session.query(func.max(model.id)).scalar() or 0 for model in models}
+    yield {"headers": {"Authorization": f"Bearer {ADMIN_PASSWORD}"}, "images": tmp_path / "images"}
+    for model in models:
+        session.query(model).filter(model.id > last_ids[model]).delete()
     session.commit()
     session.close()

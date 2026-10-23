@@ -158,8 +158,30 @@
           {{ $t("photo.all_of_bird") }}
         </v-btn>
       </v-card-text>
+
+      <!-- administration: delete the photo, after a confirmation -->
+      <v-card-actions v-if="adminStore.loggedIn" class="justify-center pt-0 pb-4">
+        <v-btn color="error" variant="text" size="small" prepend-icon="mdi-delete-outline"
+          @click="confirmDelete = true">
+          {{ $t("admin.delete.button") }}
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="confirmDelete" max-width="420px">
+    <v-card :title="$t('admin.delete.title')" :text="$t('admin.delete.desc')">
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn variant="text" @click="confirmDelete = false">{{ $t("admin.delete.cancel") }}</v-btn>
+        <v-btn color="error" variant="flat" :loading="deleting" @click="deleteCurrentPhoto">
+          {{ $t("admin.delete.confirm") }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-snackbar v-model="deleteError" color="error" timeout="5000">{{ $t("admin.delete.error") }}</v-snackbar>
 </template>
 
 <script setup lang="ts">
@@ -171,6 +193,8 @@ import BirdTile from '@/components/BirdTile.vue'
 import { useAppStore } from '@/store/app';
 import { useImagesStore } from '@/store/images'
 import { useSpeciesStore } from '@/store/species'
+import { useAdminStore } from '@/store/admin'
+import { deletePhoto } from '@/api/admin'
 import SpeciesFilters from '@/components/SpeciesFilters.vue'
 
 const appStore = useAppStore()
@@ -406,6 +430,34 @@ onUnmounted(() => {
   window.removeEventListener("keydown", onKeydown)
   clearTimeout(searchTimer)
 })
+
+// administration
+const adminStore = useAdminStore()
+const confirmDelete = ref(false)
+const deleting = ref(false)
+const deleteError = ref(false)
+
+async function deleteCurrentPhoto() {
+  if (photo.value === null) {
+    return
+  }
+  deleting.value = true
+  try {
+    await deletePhoto(adminStore.password, photo.value)
+    confirmDelete.value = false
+    // the photo does not exist anymore: no history entry to go back to
+    photoOpenedHere = false
+    await updateQuery({ photo: null }, true)
+    await loadImages()
+  } catch (err: unknown) {
+    if ((err as { response?: { status?: number } }).response?.status == 401) {
+      adminStore.logout()
+    }
+    deleteError.value = true
+  } finally {
+    deleting.value = false
+  }
+}
 
 function showAllPhotosOfBird(imgId: number) {
   const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)

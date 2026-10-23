@@ -15,3 +15,6 @@ ALLOWED_ORIGINS = [
 IMAGE_FOLDER = "{{ img_folder }}"
 
 THUMBNAIL_FOLDER = "{{ thumbnail_folder }}"
+
+# password of the administration (/admin page), disabled when empty
+ADMIN_PASSWORD = {{ (vault_admin_password | default('')) | to_json }}

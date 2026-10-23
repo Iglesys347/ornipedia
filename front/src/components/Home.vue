@@ -137,10 +137,11 @@ async function load() {
     stats.value = { photos: res.data.total, species: (await species).length }
   }).catch(() => { stats.value = null })
 
-  // more draws than needed, as the same image may be drawn twice
-  randomImages(HIGHLIGHTS_COUNT + 4).then(ids => {
-    highlights.value = ids.slice(0, HIGHLIGHTS_COUNT)
-    imgStore.fetchImageInfo(ids, locale)
+  // more draws than needed: the same image may be drawn twice, and the photos of the birds
+  // without a translation in this language (no name to show) are left out
+  randomImages(HIGHLIGHTS_COUNT + 4).then(async ids => {
+    await imgStore.fetchImageInfo(ids, locale)
+    highlights.value = ids.filter(id => imgStore.getImageInfo(id, locale)).slice(0, HIGHLIGHTS_COUNT)
   })
 
   const picked = shuffle((await species).filter(s => s)).slice(0, SPECIES_COUNT)

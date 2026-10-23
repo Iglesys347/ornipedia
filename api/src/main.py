@@ -3,9 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.router import birds, images, species
-
-# from src.router import admin
+from src.router import admin, birds, images, species
 
 from src.settings import ALLOWED_ORIGINS
 
@@ -27,4 +25,4 @@ app.add_middleware(
 app.include_router(birds.router)
 app.include_router(images.router)
 app.include_router(species.router)
-# app.include_router(admin.router)
+app.include_router(admin.router)

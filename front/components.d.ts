@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    Admin: typeof import('./src/components/Admin.vue')['default']
     BirdFinder: typeof import('./src/components/BirdFinder.vue')['default']
     BirdList: typeof import('./src/components/BirdList.vue')['default']
     BirdTile: typeof import('./src/components/BirdTile.vue')['default']

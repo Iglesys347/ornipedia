@@ -9,3 +9,6 @@ export type PaginatedSpecies = {
     per_page: number
     items: string[]
 }
+
+// maximum page size accepted by the API
+export const MAX_PER_PAGE = 100
