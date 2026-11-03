@@ -16,7 +16,7 @@
             {{ $t("home.explore") }}
           </v-btn>
           <span v-if="stats" class="text-body-1">
-            {{ $t("home.stats", { photos: stats.photos, species: stats.species }) }}
+            {{ $t("home.stats", { photos: stats.photos, birds: stats.birds }) }}
           </span>
         </div>
       </div>
@@ -83,6 +83,7 @@
 <script setup lang="ts">
 import { onMounted, ref, Ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { getBirds } from '@/api/birds';
 import { getImages, getImageUrl, getRandomImage } from '@/api/images';
 import { useAppStore } from '@/store/app';
 import { useImagesStore } from '@/store/images';
@@ -108,7 +109,7 @@ function searchGallery() {
   router.push({ path: "/birds", query: q ? { q } : {} })
 }
 
-const stats: Ref<{ photos: number, species: number } | null> = ref(null)
+const stats: Ref<{ photos: number, birds: number } | null> = ref(null)
 const highlights: Ref<number[]> = ref([])
 const speciesCards: Ref<{ species: string, imgId: number }[]> = ref([])
 
@@ -133,8 +134,9 @@ async function load() {
   const locale = appStore.locale
   const species = speciesStore.getSpecies(locale).catch(() => [] as string[])
 
-  getImages(locale, null, null, "", 1, 1).then(async res => {
-    stats.value = { photos: res.data.total, species: (await species).length }
+  // each bird is a species (the groups are not)
+  Promise.all([getImages(locale, null, null, "", 1, 1), getBirds(locale, 1, 1)]).then(([images, birds]) => {
+    stats.value = { photos: images.data.total, birds: birds.data.total }
   }).catch(() => { stats.value = null })
 
   // more draws than needed: the same image may be drawn twice, and the photos of the birds
