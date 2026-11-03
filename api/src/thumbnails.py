@@ -29,6 +29,10 @@ def get_thumbnail(image_path: str, img_id: int, width: int) -> str | None:
 
     try:
         with Image.open(image_path) as img:
+            # JPEG photos are decoded directly at a reduced scale (1/2, 1/4 or 1/8), still at
+            # least `width` in both directions (the photo may be rotated by its EXIF
+            # orientation): a 6000x4000 photo needs ~18 MB instead of ~280 MB
+            img.draft("RGB", (width, width))
             img = ImageOps.exif_transpose(img)
             if img.mode != "RGB":
                 img = img.convert("RGB")
