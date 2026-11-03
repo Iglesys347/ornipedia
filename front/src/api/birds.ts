@@ -7,6 +7,8 @@ export type BirdSummary = {
     name: string
     species: string
     sub_species: string
+    // number of photos of the bird
+    image_count: number
 }
 
 export function getBirds(lang: string, page = 1, perPage = 25) {

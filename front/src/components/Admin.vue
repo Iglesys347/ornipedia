@@ -39,8 +39,10 @@
         <v-window-item value="photo">
           <v-card class="mb-4">
             <v-card-text>
-              <v-autocomplete v-model="photoBird" :items="birds" item-value="id" :item-title="birdTitle"
-                :label="$t('admin.photo.bird')" :loading="birdsLoading" hide-details
+              <v-switch v-model="onlyWithoutPhotos" color="primary" density="compact" hide-details class="mb-2"
+                :label="$t('admin.photo.only_without_photos', { n: birdsWithoutPhotos })"></v-switch>
+              <v-autocomplete v-model="photoBird" :items="pickerBirds" item-value="id" :item-title="birdTitle"
+                :item-props="birdItemProps" :label="$t('admin.photo.bird')" :loading="birdsLoading" hide-details
                 :no-data-text="$t('image_gallery.no_species')" prepend-inner-icon="mdi-bird"></v-autocomplete>
             </v-card-text>
           </v-card>
@@ -343,6 +345,19 @@ function birdTitle(bird: BirdSummary) {
   return `${capitalize(bird.name)} (${bird.latin_name})`
 }
 
+// number of photos under each bird of the list
+function birdItemProps(bird: BirdSummary) {
+  return { subtitle: t("admin.photo.photo_count", bird.image_count) }
+}
+
+// filter to find the birds still without photos
+const onlyWithoutPhotos = ref(false)
+const birdsWithoutPhotos = computed(() => birds.value.filter(b => b.image_count == 0).length)
+const pickerBirds = computed(() => onlyWithoutPhotos.value
+  // the selected bird stays in the list once it has photos (the field would show its id otherwise)
+  ? birds.value.filter(b => b.image_count == 0 || b.id === photoBird.value)
+  : birds.value)
+
 // photo form
 const photoFormRef: Ref<Form | null> = ref(null)
 const photoBird: Ref<number | null> = ref(null)
@@ -406,6 +421,8 @@ async function submitPhoto() {
     originalUrl.value = ""
     photoFormRef.value?.resetValidation()
     loadAuthorsAndLicenses()
+    // the photo counts of the birds changed
+    loadBirds()
   } catch (err) {
     notify(requestError(err), true)
   } finally {
@@ -521,6 +538,8 @@ async function importSelected() {
     notify(t("admin.commons.imported", added), false, link)
   }
   loadAuthorsAndLicenses()
+  // the photo counts of the birds changed
+  loadBirds()
 }
 
 // choosing a bird searches its photos (by latin name)

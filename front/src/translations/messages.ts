@@ -108,6 +108,8 @@ export default {
                 submit: "Add the photo",
                 added: "Photo added.",
                 choose_bird: "Choose the bird first.",
+                only_without_photos: "Only the birds without photos ({n})",
+                photo_count: "No photo | 1 photo | {n} photos",
                 upload_title: "Upload a photo from the computer",
             },
             bird: {
@@ -287,6 +289,8 @@ export default {
                 submit: "Ajouter la photo",
                 added: "Photo ajoutée.",
                 choose_bird: "Choisissez d'abord l'oiseau.",
+                only_without_photos: "Seulement les oiseaux sans photo ({n})",
+                photo_count: "Aucune photo | 1 photo | {n} photos",
                 upload_title: "Envoyer une photo depuis l'ordinateur",
             },
             bird: {

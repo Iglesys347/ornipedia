@@ -65,6 +65,7 @@ BIRD1_EN = {
     "sub_species": TEST_BIRD_1["translations"][0]["sub_species"],
     "details": TEST_BIRD_1["translations"][0]["details"],
     "language_code": "en",
+    "image_count": len(TEST_BIRD_1["images"]),
 }
 
 BIRD1_FR = {
@@ -75,6 +76,7 @@ BIRD1_FR = {
     "sub_species": TEST_BIRD_1["translations"][1]["sub_species"],
     "details": TEST_BIRD_1["translations"][1]["details"],
     "language_code": "fr",
+    "image_count": len(TEST_BIRD_1["images"]),
 }
 
 BIRD1_EN_IMAGES = {
@@ -86,6 +88,7 @@ BIRD1_EN_IMAGES = {
     "details": TEST_BIRD_1["translations"][0]["details"],
     "language_code": "en",
     "image_ids": [img["id"] for img in TEST_BIRD_1["images"]],
+    "image_count": len(TEST_BIRD_1["images"]),
 }
 
 BIRD1_FR_IMAGES = {
@@ -97,6 +100,7 @@ BIRD1_FR_IMAGES = {
     "details": TEST_BIRD_1["translations"][1]["details"],
     "language_code": "fr",
     "image_ids": [img["id"] for img in TEST_BIRD_1["images"]],
+    "image_count": len(TEST_BIRD_1["images"]),
 }
 
 # bird without any image nor sub-species

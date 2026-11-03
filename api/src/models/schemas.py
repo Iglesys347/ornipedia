@@ -26,6 +26,8 @@ class BirdBase(BaseModel):
 
 
 class Bird(BirdBase, TranslationNoID):
+    # number of photos of the bird (e.g. to find the birds without photos)
+    image_count: int = 0
 
     @model_validator(mode="before")
     @classmethod

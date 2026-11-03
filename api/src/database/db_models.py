@@ -34,6 +34,7 @@ class Bird(Base):
         bird_dict["image_ids"] = []
         if self.images:
             bird_dict["image_ids"] = [image.id for image in self.images]
+        bird_dict["image_count"] = len(bird_dict["image_ids"])
         return bird_dict
 
 

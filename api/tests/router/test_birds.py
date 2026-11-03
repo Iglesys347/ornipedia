@@ -175,3 +175,9 @@ def test_bird_images_without_images(client, bird_without_images):
 def test_birds_per_page_too_large(client):
     response = client.get("/birds", params={"per_page": 1000})
     assert response.status_code == 422
+
+
+def test_birds_image_count(client, bird_without_images):
+    birds = client.get("/birds", params={"language": "fr"}).json()["items"]
+    counts = {bird["id"]: bird["image_count"] for bird in birds}
+    assert counts == {TEST_BIRD_1["id"]: len(TEST_BIRD_1["images"]), bird_without_images["id"]: 0}
