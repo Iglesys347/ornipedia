@@ -9,7 +9,10 @@ bind_server_socket: "unix:/run/{{ gunicorn_runtime_dir }}/gunicorn.sock"
 # timeout (in seconds) after which a silent worker is killed and restarted
 gunicorn_timeout: 30
 # number of workers
-n_workers: 3
+n_workers: "{{ ornipedia_gunicorn_workers | default(3) }}"
+# each worker is replaced after this number of requests (+ up to 10% to not replace them all
+# at once), which frees the memory it accumulated
+gunicorn_max_requests: 1000
 # destination of the service file
 gunicorn_service_name: "gunicorn-{{ instance_name }}"
 
