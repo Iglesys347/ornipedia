@@ -130,3 +130,16 @@ def test_image_thumbnail_unreadable_original(client):
 def test_image_thumbnail_invalid_width(client, width):
     response = client.get(f"/images/{TEST_BIRD_1['images'][0]['id']}", params={"width": width})
     assert response.status_code == 422
+
+
+def test_image_thumbnail_big_rotated_jpeg(client, real_image):
+    # big JPEG taken in portrait: stored 4000x3000 with the EXIF orientation "rotate 90°"
+    from PIL import Image as PILImage  # pylint: disable=import-outside-toplevel
+
+    exif = PILImage.Exif()
+    exif[0x0112] = 6
+    PILImage.new("RGB", (4000, 3000), (120, 160, 90)).save(real_image["path"], "JPEG", exif=exif)
+    response = client.get(f"/images/{real_image['id']}", params={"width": 640})
+    assert response.status_code == 200
+    # decoded at a reduced scale, rotated, then resized to the requested width
+    assert PILImage.open(io.BytesIO(response.content)).size == (640, 853)

@@ -5,6 +5,9 @@
 [Unit]
 Description=gunicorn daemon ({{ instance_name }})
 After=network.target
+# give up after 5 restarts in 10 minutes (instead of restarting in a loop)
+StartLimitIntervalSec=600
+StartLimitBurst=5
 
 [Service]
 PIDFile=/run/{{ gunicorn_runtime_dir }}/pid-{{ gunicorn_service_name }}
@@ -13,10 +16,16 @@ Group={{ ansible_env.USER }}
 RuntimeDirectory={{ gunicorn_runtime_dir }}
 Environment="PYTHONPATH={{ project_dir }}"
 WorkingDirectory={{ project_dir }}
-ExecStart={{ venv_path }}/bin/gunicorn --pid /run/{{ gunicorn_runtime_dir }}/pid-{{ gunicorn_service_name }} --timeout {{ gunicorn_timeout }} -w {{ n_workers }} {{ api_app }} --bind {{ bind_server_socket}} --worker-class uvicorn.workers.UvicornWorker
+ExecStart={{ venv_path }}/bin/gunicorn --pid /run/{{ gunicorn_runtime_dir }}/pid-{{ gunicorn_service_name }} --timeout {{ gunicorn_timeout }} -w {{ n_workers }} --max-requests {{ gunicorn_max_requests }} --max-requests-jitter {{ (gunicorn_max_requests / 10) | int }} {{ api_app }} --bind {{ bind_server_socket}} --worker-class uvicorn.workers.UvicornWorker
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID
 PrivateTmp=true
+# restarted when it stops unexpectedly (crash, killed when the server is out of memory...)
+Restart=always
+RestartSec=5
+# a worker killed when the server is out of memory is replaced by gunicorn: the service
+# is not stopped (by default, systemd stops the whole service)
+OOMPolicy=continue
 
 [Install]
 WantedBy=multi-user.target
