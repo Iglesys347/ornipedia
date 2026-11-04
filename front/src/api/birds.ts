@@ -5,8 +5,8 @@ export type BirdSummary = {
     id: number
     latin_name: string
     name: string
-    species: string
-    sub_species: string
+    group: string
+    subgroup: string | null
     // number of photos of the bird
     image_count: number
 }

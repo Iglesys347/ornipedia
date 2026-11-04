@@ -40,19 +40,19 @@
       </v-row>
     </section>
 
-    <!-- entry points by species -->
-    <section v-if="speciesCards.length > 0" class="mb-12">
-      <h2 class="text-h5 mb-4">{{ $t("home.by_species") }}</h2>
+    <!-- entry points by group -->
+    <section v-if="groupCards.length > 0" class="mb-12">
+      <h2 class="text-h5 mb-4">{{ $t("home.by_group") }}</h2>
       <v-row>
-        <v-col v-for="card in speciesCards" :key="card.species" cols="6" sm="4" md="2">
-          <v-card :to="{ path: '/birds', query: { species: card.species } }" class="species-card" rounded="xl">
-            <v-img :src="getImageUrl(card.imgId, 320)" :alt="capitalize(card.species)" :aspect-ratio="1" cover
+        <v-col v-for="card in groupCards" :key="card.group" cols="6" sm="4" md="2">
+          <v-card :to="{ path: '/birds', query: { group: card.group } }" class="group-card" rounded="xl">
+            <v-img :src="getImageUrl(card.imgId, 320)" :alt="capitalize(card.group)" :aspect-ratio="1" cover
               gradient="to top, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0) 55%">
               <template v-slot:placeholder>
-                <div class="species-placeholder fill-height"></div>
+                <div class="group-placeholder fill-height"></div>
               </template>
               <div class="d-flex fill-height align-end pa-3">
-                <span class="text-white font-weight-medium">{{ capitalize(card.species) }}</span>
+                <span class="text-white font-weight-medium">{{ capitalize(card.group) }}</span>
               </div>
             </v-img>
           </v-card>
@@ -87,16 +87,16 @@ import { getBirds } from '@/api/birds';
 import { getImages, getImageUrl, getRandomImage } from '@/api/images';
 import { useAppStore } from '@/store/app';
 import { useImagesStore } from '@/store/images';
-import { useSpeciesStore } from '@/store/species';
+import { useGroupsStore } from '@/store/groups';
 import BirdTile from '@/components/BirdTile.vue';
 
 const appStore = useAppStore()
 const imgStore = useImagesStore()
-const speciesStore = useSpeciesStore()
+const groupsStore = useGroupsStore()
 const router = useRouter()
 
 const HIGHLIGHTS_COUNT = 8
-const SPECIES_COUNT = 6
+const GROUP_COUNT = 6
 
 const comingFeatures = [
   { title: "navigation.bird_finder.title", desc: "bird_finder.coming_soon.desc", icon: "mdi-magnify-expand" },
@@ -111,7 +111,7 @@ function searchGallery() {
 
 const stats: Ref<{ photos: number, birds: number } | null> = ref(null)
 const highlights: Ref<number[]> = ref([])
-const speciesCards: Ref<{ species: string, imgId: number }[]> = ref([])
+const groupCards: Ref<{ group: string, imgId: number }[]> = ref([])
 
 function shuffle<T>(values: T[]): T[] {
   const result = [...values]
@@ -123,8 +123,8 @@ function shuffle<T>(values: T[]): T[] {
 }
 
 // random images, without duplicates (there may be fewer images than requested)
-async function randomImages(count: number, species: string | null = null): Promise<number[]> {
-  const results = await Promise.allSettled(Array.from({ length: count }, () => getRandomImage(species)))
+async function randomImages(count: number, group: string | null = null): Promise<number[]> {
+  const results = await Promise.allSettled(Array.from({ length: count }, () => getRandomImage(group)))
   const ids = results.flatMap(r => r.status == "fulfilled" ? [r.value.data.id as number] : [])
   return [...new Set(ids)]
 }
@@ -132,7 +132,7 @@ async function randomImages(count: number, species: string | null = null): Promi
 // each section is loaded independently, a failing one is simply not shown
 async function load() {
   const locale = appStore.locale
-  const species = speciesStore.getSpecies(locale).catch(() => [] as string[])
+  const groups = groupsStore.getGroups(locale).catch(() => [] as string[])
 
   // each bird is a species (the groups are not)
   Promise.all([getImages(locale, null, null, "", 1, 1), getBirds(locale, 1, 1)]).then(([images, birds]) => {
@@ -146,12 +146,12 @@ async function load() {
     highlights.value = ids.filter(id => imgStore.getImageInfo(id, locale)).slice(0, HIGHLIGHTS_COUNT)
   })
 
-  const picked = shuffle((await species).filter(s => s)).slice(0, SPECIES_COUNT)
+  const picked = shuffle((await groups).filter(s => s)).slice(0, GROUP_COUNT)
   const cards = await Promise.all(picked.map(async s => {
     const ids = await randomImages(1, s).catch(() => [])
-    return ids.length > 0 ? { species: s, imgId: ids[0] } : null
+    return ids.length > 0 ? { group: s, imgId: ids[0] } : null
   }))
-  speciesCards.value = cards.filter((c): c is { species: string, imgId: number } => c !== null)
+  groupCards.value = cards.filter((c): c is { group: string, imgId: number } => c !== null)
 }
 
 onMounted(load)
@@ -173,11 +173,11 @@ function capitalize(str: string) {
   max-width: 560px;
 }
 
-.species-card {
+.group-card {
   overflow: hidden;
 }
 
-.species-placeholder {
+.group-placeholder {
   background: rgba(var(--v-theme-on-surface), 0.08);
 }
 </style>

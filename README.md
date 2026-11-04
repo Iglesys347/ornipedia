@@ -1,6 +1,6 @@
 # Ornipedia
 
-Ornipedia is a bird encyclopedia: an image gallery of birds, browsable by species and sub-species, available in several languages.
+Ornipedia is a bird encyclopedia: an image gallery of birds, browsable by group (e.g. raptors) and subgroup (e.g. eagles), available in several languages.
 
 The repository contains three parts:
 

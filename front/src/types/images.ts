@@ -1,8 +1,8 @@
 type Bird = {
     id: number;
     name: string;
-    species: string;
-    sub_species: string;
+    group: string;
+    subgroup: string | null;
     details: string;
     language_code: string;
     latin_name: string;
