@@ -6,8 +6,8 @@ from src.database import db_models
 
 class TranslationBase(BaseModel):
     name: str
-    species: str
-    sub_species: str | None = None
+    group: str
+    subgroup: str | None = None
     details: str | None = None
 
 

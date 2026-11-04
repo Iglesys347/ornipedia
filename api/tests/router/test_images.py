@@ -67,15 +67,15 @@ def test_random_image(client, url):
     assert response.json()["id"] in [img["id"] for img in TEST_BIRD_1["images"]]
 
 
-def test_random_image_species_filter(client, bird_without_images):
-    species = TEST_BIRD_1["translations"][0]["species"]
-    response = client.get("/images/random", params={"species": species})
+def test_random_image_group_filter(client, bird_without_images):
+    group = TEST_BIRD_1["translations"][0]["group"]
+    response = client.get("/images/random", params={"group": group})
     assert response.status_code == 200
     assert response.json()["bird_id"] == TEST_BIRD_1["id"]
 
-    # the bird of this species has no image
-    species = bird_without_images["translations"][0]["species"]
-    response = client.get("/images/random", params={"species": species})
+    # the bird of this group has no image
+    group = bird_without_images["translations"][0]["group"]
+    response = client.get("/images/random", params={"group": group})
     assert response.status_code == 404
 
 

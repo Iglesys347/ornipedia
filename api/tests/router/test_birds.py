@@ -43,15 +43,15 @@ def test_birds_missing_language(client):
 
 
 @pytest.mark.parametrize(
-    "species,lang,expected",
+    "group,lang,expected",
     [
         (None, "fr", BIRD1_FR),
-        (TEST_BIRD_1["translations"][0]["species"], "en", BIRD1_EN),
-        (TEST_BIRD_1["translations"][1]["species"], "fr", BIRD1_FR),
+        (TEST_BIRD_1["translations"][0]["group"], "en", BIRD1_EN),
+        (TEST_BIRD_1["translations"][1]["group"], "fr", BIRD1_FR),
     ],
 )
-def test_birds_species_filter(client, species, lang, expected):
-    response = client.get("/birds", params={"language": lang, "species": species})
+def test_birds_group_filter(client, group, lang, expected):
+    response = client.get("/birds", params={"language": lang, "group": group})
     assert response.status_code == 200
     assert response.json() == {
         "items": [expected],
@@ -62,16 +62,16 @@ def test_birds_species_filter(client, species, lang, expected):
 
 
 @pytest.mark.parametrize(
-    "sub_species,lang,expected",
+    "subgroup,lang,expected",
     [
         (None, "fr", BIRD1_FR),
-        (TEST_BIRD_1["translations"][0]["sub_species"], "en", BIRD1_EN),
-        (TEST_BIRD_1["translations"][1]["sub_species"], "fr", BIRD1_FR),
+        (TEST_BIRD_1["translations"][0]["subgroup"], "en", BIRD1_EN),
+        (TEST_BIRD_1["translations"][1]["subgroup"], "fr", BIRD1_FR),
     ],
 )
-def test_birds_sub_species_filter(client, sub_species, lang, expected):
+def test_birds_subgroup_filter(client, subgroup, lang, expected):
     response = client.get(
-        "/birds", params={"language": lang, "sub_species": sub_species}
+        "/birds", params={"language": lang, "subgroup": subgroup}
     )
     assert response.status_code == 200
     assert response.json() == {

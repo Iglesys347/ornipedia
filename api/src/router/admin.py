@@ -69,7 +69,16 @@ def create_bird(bird: BirdIn, db: Session = Depends(get_db)):
     db.add(db_bird)
     db.flush()
     for translation in bird.translations:
-        db.add(db_models.Translation(bird_id=db_bird.id, **translation.model_dump()))
+        db.add(
+            db_models.Translation(
+                bird_id=db_bird.id,
+                language_code=translation.language_code,
+                name=translation.name,
+                group_name=translation.group,
+                subgroup_name=translation.subgroup,
+                details=translation.details,
+            )
+        )
     db.commit()
     return db_bird
 

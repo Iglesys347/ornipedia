@@ -23,10 +23,8 @@ class Bird(Base):
             bird_dict.update(
                 {
                     "name": translation.name,
-                    "species": translation.species,
-                    "sub_species": (
-                        translation.sub_species if translation.sub_species else ""
-                    ),
+                    "group": translation.group_name,
+                    "subgroup": translation.subgroup_name or None,
                     "details": translation.details if translation.details else "",
                     "language_code": translation.language_code,
                 }
@@ -45,8 +43,8 @@ class Translation(Base):
     bird_id = Column(Integer, ForeignKey("birds.id"), nullable=False)
     language_code = Column(String, nullable=False)
     name = Column(String, nullable=False)
-    species = Column(String, nullable=False)
-    sub_species = Column(String, nullable=True)
+    group_name = Column(String, nullable=False)
+    subgroup_name = Column(String, nullable=True)
     details = Column(String)
 
     bird = relationship("Bird", back_populates="translations")
