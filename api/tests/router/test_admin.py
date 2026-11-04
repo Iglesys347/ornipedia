@@ -9,8 +9,8 @@ from tests.consts import TEST_BIRD_1
 NEW_BIRD = {
     "latin_name": " Pica pica ",
     "translations": [
-        {"language_code": "fr", "name": "pie bavarde", "species": "corvidés", "sub_species": " ", "details": None},
-        {"language_code": "en", "name": "eurasian magpie", "species": "crows"},
+        {"language_code": "fr", "name": "pie bavarde", "group": "corvidés", "subgroup": " ", "details": None},
+        {"language_code": "en", "name": "eurasian magpie", "group": "crows"},
     ],
 }
 
@@ -54,8 +54,8 @@ def test_create_bird(client, admin):
 
     bird = client.get(f"/birds/{bird_id}", params={"language": "fr"}).json()
     assert bird["name"] == "pie bavarde"
-    assert bird["species"] == "corvidés"
-    assert bird["sub_species"] == ""  # blank sub-species stored as null
+    assert bird["group"] == "corvidés"
+    assert bird["subgroup"] is None  # blank subgroup stored as null
     assert client.get(f"/birds/{bird_id}", params={"language": "en"}).json()["name"] == "eurasian magpie"
 
 
@@ -169,7 +169,7 @@ def test_add_photo_mpo(client, admin, real_image):
 
 def test_create_french_only_bird(client, admin):
     bird = {"latin_name": "Gypaetus barbatus",
-            "translations": [{"language_code": "fr", "name": "gypaète barbu", "species": "rapaces"}]}
+            "translations": [{"language_code": "fr", "name": "gypaète barbu", "group": "rapaces"}]}
     response = client.post("/admin/birds", json=bird, headers=admin["headers"])
     assert response.status_code == 201
     bird_id = response.json()["id"]

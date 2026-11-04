@@ -4,11 +4,11 @@ from pydantic import BaseModel, Field, field_validator
 class TranslationIn(BaseModel):
     language_code: str = Field(pattern=r"^[a-z]{2}$")
     name: str = Field(min_length=1, max_length=200)
-    species: str = Field(min_length=1, max_length=200)
-    sub_species: str | None = Field(default=None, max_length=200)
+    group: str = Field(min_length=1, max_length=200)
+    subgroup: str | None = Field(default=None, max_length=200)
     details: str | None = None
 
-    @field_validator("name", "species", "sub_species", "details", mode="before")
+    @field_validator("name", "group", "subgroup", "details", mode="before")
     @classmethod
     def strip(cls, value):
         if isinstance(value, str):

@@ -6,8 +6,8 @@ import instance from "./axios_instance"
 export type TranslationIn = {
     language_code: string
     name: string
-    species: string
-    sub_species: string | null
+    group: string
+    subgroup: string | null
     details: string | null
 }
 

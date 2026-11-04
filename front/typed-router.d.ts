@@ -43,8 +43,8 @@ declare module 'vue-router/auto/routes' {
     '/admin': RouteRecordInfo<'/admin', '/admin', Record<never, never>, Record<never, never>>,
     '/bird-finder': RouteRecordInfo<'/bird-finder', '/bird-finder', Record<never, never>, Record<never, never>>,
     '/birds': RouteRecordInfo<'/birds', '/birds', Record<never, never>, Record<never, never>>,
+    '/groups': RouteRecordInfo<'/groups', '/groups', Record<never, never>, Record<never, never>>,
     '/quiz': RouteRecordInfo<'/quiz', '/quiz', Record<never, never>, Record<never, never>>,
-    '/species': RouteRecordInfo<'/species', '/species', Record<never, never>, Record<never, never>>,
   }
 }
 

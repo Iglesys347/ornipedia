@@ -33,8 +33,8 @@ router = APIRouter(
 def read_images(
     language: str = "fr",
     search: str | None = None,
-    species: str | None = None,
-    sub_species: str | None = None,
+    group: str | None = None,
+    subgroup: str | None = None,
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=25, ge=0, le=MAX_PER_PAGE),
     db: Session = Depends(get_db),
@@ -43,8 +43,8 @@ def read_images(
         db,
         language=language,
         search=search,
-        species=species,
-        sub_species=sub_species,
+        group=group,
+        subgroup=subgroup,
         page=page,
         per_page=per_page,
     )
@@ -63,11 +63,11 @@ def read_images(
     response_model=ImageWoPath,
 )
 def read_random_image(
-    species: str | None = None,
-    sub_species: str | None = None,
+    group: str | None = None,
+    subgroup: str | None = None,
     db: Session = Depends(get_db),
 ):
-    image = get_random_image(db, species=species, sub_species=sub_species)
+    image = get_random_image(db, group=group, subgroup=subgroup)
     if not image:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

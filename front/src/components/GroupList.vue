@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-col v-for="(imgId, s) in species" :key="s" class="d-flex child-flex" cols="4">
+    <v-col v-for="(imgId, s) in groups" :key="s" class="d-flex child-flex" cols="4">
       <v-img :src="getImageUrl(imgId as number, 640)" aspect-ratio="1" cover class="cursor-pointer">
         <v-slide-y-reverse-transition>
           <v-card class="d-flex flex-column bg-transparent" elevation="0" rounded="0" style="height: 100%;">
@@ -18,23 +18,23 @@
 
 <script setup lang="ts">
 import { getRandomImage, getImageUrl } from '@/api/images';
-import { getSpecies } from '@/api/species';
+import { getGroups } from '@/api/groups';
 import { useAppStore } from '@/store/app';
 import { Ref, onMounted, ref } from 'vue';
 
 const appStore = useAppStore()
 
-const species: Ref<{ [species: string]: number }> = ref({})
+const groups: Ref<{ [group: string]: number }> = ref({})
 
 onMounted(async () => {
   let sp: string[] = []
-  const res = await getSpecies(appStore.locale)
+  const res = await getGroups(appStore.locale)
   if (res.status == 200) {
     sp = res.data.items
   }
   for (const s of sp) {
     const imgId = await getRandomImage(s)
-    species.value[s] = imgId.data.id
+    groups.value[s] = imgId.data.id
   }
 })
 </script>
