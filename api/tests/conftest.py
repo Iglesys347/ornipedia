@@ -155,3 +155,38 @@ def admin(tmp_path, monkeypatch):
         session.query(model).filter(model.id > last_ids[model]).delete()
     session.commit()
     session.close()
+
+
+# id, name, group, subgroup (in english); the test bird 1 has photos too
+QUIZ_BIRDS = [
+    (101, "golden eagle", "raptors", "eagles"),
+    (102, "bonelli's eagle", "raptors", "eagles"),
+    (103, "booted eagle", "raptors", "eagles"),
+    (104, "common buzzard", "raptors", "buzzards"),
+    (105, "mallard", "ducks", None),
+    (106, "robin", "passerines", None),
+]
+# a bird without photos is never part of the quiz
+NO_PHOTO_BIRD = (107, "no photo", "raptors", "eagles")
+
+
+@pytest.fixture
+def quiz_birds():
+    """Temporarily adds birds with photos to the database, for the quiz"""
+    session = TestingSessionLocal()
+    for bird_id, name, group, subgroup in QUIZ_BIRDS + [NO_PHOTO_BIRD]:
+        session.add(Bird(id=bird_id, latin_name=f"latin {name}"))
+        session.add(Translation(bird_id=bird_id, language_code="en", name=name,
+                                group_name=group, subgroup_name=subgroup))
+    for bird_id, *_ in QUIZ_BIRDS:
+        for index in range(2):
+            session.add(Image(id=bird_id * 10 + index, bird_id=bird_id, author_id=1, license_id=1,
+                              image_path="unused", original_url="url"))
+    session.commit()
+    yield
+    ids = [bird[0] for bird in QUIZ_BIRDS + [NO_PHOTO_BIRD]]
+    session.query(Image).filter(Image.bird_id.in_(ids)).delete()
+    session.query(Translation).filter(Translation.bird_id.in_(ids)).delete()
+    session.query(Bird).filter(Bird.id.in_(ids)).delete()
+    session.commit()
+    session.close()

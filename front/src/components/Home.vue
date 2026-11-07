@@ -60,6 +60,21 @@
       </v-row>
     </section>
 
+    <!-- the quiz -->
+    <section class="mb-12">
+      <v-card variant="tonal" color="primary" rounded="xl">
+        <v-card-item prepend-icon="mdi-chat-question-outline">
+          <v-card-title class="text-wrap">{{ $t("home.quiz.title") }}</v-card-title>
+        </v-card-item>
+        <v-card-text class="text-body-1">{{ $t("home.quiz.desc") }}</v-card-text>
+        <v-card-actions class="px-4 pb-4">
+          <v-btn to="/quiz" color="primary" variant="flat" append-icon="mdi-arrow-right">
+            {{ $t("home.quiz.play") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </section>
+
     <!-- upcoming functionalities -->
     <section>
       <h2 class="text-h5 mb-4">{{ $t("home.coming") }}</h2>
@@ -100,7 +115,6 @@ const GROUP_COUNT = 6
 
 const comingFeatures = [
   { title: "navigation.bird_finder.title", desc: "bird_finder.coming_soon.desc", icon: "mdi-magnify-expand" },
-  { title: "navigation.quiz.title", desc: "quiz.coming_soon.desc", icon: "mdi-chat-question-outline" },
 ]
 
 const heroSearch = ref("")

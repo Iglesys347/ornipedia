@@ -65,6 +65,11 @@ export default {
             see_gallery: "See the whole gallery",
             by_group: "Explore by group",
             coming: "Coming soon",
+            quiz: {
+                title: "Test your knowledge",
+                desc: "Recognize birds from their photos, or find a bird's photo from its name. Two difficulty levels: the hard one only mixes birds of the same group.",
+                play: "Play the quiz",
+            },
         },
         footer: {
             credits: "Photos under free licenses, the author and license are shown with each photo.",
@@ -156,10 +161,56 @@ export default {
             }
         },
         quiz: {
-            coming_soon: {
-                title: "Coming soon!",
-                desc: "Get ready to test your knowledge about birds! Stay tuned for more updates!"
-            }
+            title: "Bird quiz",
+            intro: "Recognize the birds from their photos, or find the photo of a bird from its name.",
+            setup: {
+                format: "Quiz format",
+                difficulty: "Difficulty",
+                length: "Number of questions",
+                start: "Start",
+            },
+            format: {
+                photo: { title: "Which bird is it?", desc: "A photo, find the name of the bird among 4 choices." },
+                name: { title: "Find the photo", desc: "A bird name, find its photo among 4." },
+                mixed: { title: "Mixed", desc: "Both kinds of questions, at random." },
+            },
+            difficulty: {
+                easy: { title: "Easy", desc: "The choices are birds picked at random." },
+                hard: { title: "Hard", desc: "The choices are birds of the same group, or even of the same subgroup: telling a golden eagle from a Bonelli's eagle is harder!" },
+            },
+            progress: "Question {n} / {total}",
+            score: "Score: {score}",
+            quit: "Quit",
+            retry: "Retry",
+            question: {
+                photo: "Which bird is it?",
+                photo_alt: "Photo of the bird to recognize",
+                name: "Find the photo of:",
+                photo_choice: "Photo {n}",
+            },
+            feedback: {
+                correct: "Well done!",
+                wrong: "Missed!",
+                it_was: "It was:",
+            },
+            keyboard_hint: "Tip: use the keys 1 to 4 to answer, and Enter to go on.",
+            next: "Next question",
+            see_result: "See the result",
+            result: {
+                perfect: "Perfect score, you are an expert ornithologist!",
+                good: "Very good, you know your birds!",
+                average: "Not bad, keep practicing!",
+                bad: "The birds still have secrets for you, try again!",
+            },
+            play_again: "Play again",
+            change_settings: "Change the settings",
+            review: "Your answers",
+            your_answer: "Your answer: {name}",
+            unknown_author: "unknown author",
+            error: {
+                not_enough: "There are not enough birds with photos yet to make a quiz.",
+                load: "Unable to load the question, please try again.",
+            },
         },
         image_gallery: {
             title: "Image gallery",
@@ -246,6 +297,11 @@ export default {
             see_gallery: "Voir toute la galerie",
             by_group: "Explorer par groupe",
             coming: "Bientôt disponible",
+            quiz: {
+                title: "Testez vos connaissances",
+                desc: "Reconnaissez les oiseaux sur photo, ou retrouvez la photo d'un oiseau à partir de son nom. Deux niveaux : en difficile, seuls des oiseaux du même groupe sont proposés.",
+                play: "Jouer au quiz",
+            },
         },
         footer: {
             credits: "Photos sous licences libres, l'auteur et la licence sont indiqués sur chaque photo.",
@@ -337,10 +393,56 @@ export default {
             }
         },
         quiz: {
-            coming_soon: {
-                title: "Bientôt disponible !",
-                desc: "Préparez-vous à tester vos connaissances sur les oiseaux ! Restez à l'écoute des nouvelles mises à jour !"
-            }
+            title: "Quiz ornitho",
+            intro: "Reconnaissez les oiseaux à partir de leurs photos, ou retrouvez la photo d'un oiseau à partir de son nom.",
+            setup: {
+                format: "Type de quiz",
+                difficulty: "Difficulté",
+                length: "Nombre de questions",
+                start: "Commencer",
+            },
+            format: {
+                photo: { title: "Quel est cet oiseau ?", desc: "Une photo, trouvez le nom de l'oiseau parmi 4 propositions." },
+                name: { title: "Trouvez la photo", desc: "Un nom d'oiseau, trouvez sa photo parmi 4." },
+                mixed: { title: "Mixte", desc: "Les deux types de questions, au hasard." },
+            },
+            difficulty: {
+                easy: { title: "Facile", desc: "Les propositions sont des oiseaux tirés au hasard." },
+                hard: { title: "Difficile", desc: "Les propositions sont des oiseaux du même groupe, voire du même sous-groupe : distinguer un aigle royal d'un aigle de Bonelli, c'est plus dur !" },
+            },
+            progress: "Question {n} / {total}",
+            score: "Score : {score}",
+            quit: "Quitter",
+            retry: "Réessayer",
+            question: {
+                photo: "Quel est cet oiseau ?",
+                photo_alt: "Photo de l'oiseau à reconnaître",
+                name: "Trouvez la photo de :",
+                photo_choice: "Photo {n}",
+            },
+            feedback: {
+                correct: "Bravo !",
+                wrong: "Raté !",
+                it_was: "C'était :",
+            },
+            keyboard_hint: "Astuce : utilisez les touches 1 à 4 pour répondre, et Entrée pour continuer.",
+            next: "Question suivante",
+            see_result: "Voir le résultat",
+            result: {
+                perfect: "Sans faute, vous êtes un ornithologue confirmé !",
+                good: "Très bien, vous connaissez vos oiseaux !",
+                average: "Pas mal, continuez à vous entraîner !",
+                bad: "Les oiseaux ont encore des secrets pour vous, réessayez !",
+            },
+            play_again: "Rejouer",
+            change_settings: "Changer les paramètres",
+            review: "Vos réponses",
+            your_answer: "Votre réponse : {name}",
+            unknown_author: "auteur inconnu",
+            error: {
+                not_enough: "Il n'y a pas encore assez d'oiseaux avec photos pour faire un quiz.",
+                load: "Impossible de charger la question, réessayez.",
+            },
         },
         image_gallery: {
             title: "Galerie d'images",
