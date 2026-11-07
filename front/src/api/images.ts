@@ -2,10 +2,10 @@ import instance from "./axios_instance"
 
 export function getImages(
     lang: string | null = null,
-    species: string | null = null, subSpecies: string | null = null, search: string = "",
+    group: string | null = null, subgroup: string | null = null, search: string = "",
     page: number | null = null, perPage: number | null = null
 ) {
-    return instance.get("/images", { params: { language: lang, species: species, sub_species: subSpecies, search: search, page: page, per_page: perPage } })
+    return instance.get("/images", { params: { language: lang, group: group, subgroup: subgroup, search: search, page: page, per_page: perPage } })
 }
 
 // widths of the resized images served by the API
@@ -26,6 +26,6 @@ export function getImageInfo(imgId: number, lang: string) {
     return instance.get(`/images/${imgId}/info`, { params: { language: lang } })
 }
 
-export function getRandomImage(species: string | null = null, subSpecies: string | null = null) {
-    return instance.get(`/images/random`, { params: { species: species, sub_species: subSpecies } })
+export function getRandomImage(group: string | null = null, subgroup: string | null = null) {
+    return instance.get(`/images/random`, { params: { group: group, subgroup: subgroup } })
 }

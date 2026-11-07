@@ -10,9 +10,9 @@
 
       <!-- desktop: filters next to the search field -->
       <v-col v-if="!smallScreen" cols="12" md="8">
-        <SpeciesFilters :species="species" :sub-species="subSpecies" :selected-species="selectedSpecies"
-          :selected-sub-species="selectedSubSpecies" :density="density" @update:species="selectSpecies"
-          @update:sub-species="selectSubSpecies"></SpeciesFilters>
+        <GroupFilters :groups="groups" :subgroups="subgroups" :selected-group="selectedGroup"
+          :selected-subgroup="selectedSubgroup" :density="density" @update:group="selectGroup"
+          @update:subgroup="selectSubgroup"></GroupFilters>
       </v-col>
 
       <!-- mobile: a button opening the filters at the bottom of the screen -->
@@ -27,12 +27,12 @@
     <v-bottom-sheet v-model="filtersSheet">
       <v-card :title="$t('image_gallery.filters')">
         <v-card-text>
-          <SpeciesFilters :species="species" :sub-species="subSpecies" :selected-species="selectedSpecies"
-            :selected-sub-species="selectedSubSpecies" stacked @update:species="selectSpecies"
-            @update:sub-species="selectSubSpecies"></SpeciesFilters>
+          <GroupFilters :groups="groups" :subgroups="subgroups" :selected-group="selectedGroup"
+            :selected-subgroup="selectedSubgroup" stacked @update:group="selectGroup"
+            @update:subgroup="selectSubgroup"></GroupFilters>
         </v-card-text>
         <v-card-actions class="px-4 pb-4">
-          <v-btn v-if="activeFiltersCount > 0" variant="text" @click="clearSpeciesFilters">
+          <v-btn v-if="activeFiltersCount > 0" variant="text" @click="clearGroupFilters">
             {{ $t("image_gallery.clear_filters") }}
           </v-btn>
           <v-spacer></v-spacer>
@@ -43,15 +43,15 @@
       </v-card>
     </v-bottom-sheet>
 
-    <!-- active filters, whatever the number of species -->
+    <!-- active filters, whatever the number of groups -->
     <div v-if="activeFiltersCount > 0" class="d-flex flex-wrap ga-2 px-3 pt-1">
-      <v-chip v-if="selectedSpecies" closable size="small" color="primary" variant="tonal"
-        :close-label="$t('image_gallery.remove_filter')" @click:close="selectSpecies(null)">
-        {{ $t("image_gallery.species_chip", { name: capitalizeFirstLetter(selectedSpecies) }) }}
+      <v-chip v-if="selectedGroup" closable size="small" color="primary" variant="tonal"
+        :close-label="$t('image_gallery.remove_filter')" @click:close="selectGroup(null)">
+        {{ $t("image_gallery.group_chip", { name: capitalizeFirstLetter(selectedGroup) }) }}
       </v-chip>
-      <v-chip v-if="selectedSubSpecies" closable size="small" color="primary" variant="tonal"
-        :close-label="$t('image_gallery.remove_filter')" @click:close="selectSubSpecies(null)">
-        {{ $t("image_gallery.sub_species_chip", { name: capitalizeFirstLetter(selectedSubSpecies) }) }}
+      <v-chip v-if="selectedSubgroup" closable size="small" color="primary" variant="tonal"
+        :close-label="$t('image_gallery.remove_filter')" @click:close="selectSubgroup(null)">
+        {{ $t("image_gallery.subgroup_chip", { name: capitalizeFirstLetter(selectedSubgroup) }) }}
       </v-chip>
     </div>
 
@@ -192,19 +192,27 @@ import { getImageUrl, getImages } from '@/api/images';
 import BirdTile from '@/components/BirdTile.vue'
 import { useAppStore } from '@/store/app';
 import { useImagesStore } from '@/store/images'
-import { useSpeciesStore } from '@/store/species'
+import { useGroupsStore } from '@/store/groups'
 import { useAdminStore } from '@/store/admin'
 import { deletePhoto } from '@/api/admin'
-import SpeciesFilters from '@/components/SpeciesFilters.vue'
+import GroupFilters from '@/components/GroupFilters.vue'
 
 const appStore = useAppStore()
 const imgStore = useImagesStore()
-const speciesStore = useSpeciesStore()
+const groupsStore = useGroupsStore()
 
 // The state of the gallery (search, filters, page and opened photo) is kept in the URL,
 // so that it survives a reload, works with the back button and can be shared.
 const route = useRoute()
 const router = useRouter()
+
+// links shared before the renaming of species to groups (?species=...&sub_species=...)
+if (route.query.species !== undefined || route.query.sub_species !== undefined) {
+  const { species, sub_species: subSpecies, ...query } = route.query
+  router.replace({
+    query: { ...query, ...(species ? { group: species } : {}), ...(subSpecies ? { subgroup: subSpecies } : {}) },
+  })
+}
 
 function queryValue(name: string): string | null {
   const value = route.query[name]
@@ -218,8 +226,8 @@ function queryNumber(name: string): number | null {
 }
 
 const search = computed(() => queryValue("q") ?? "")
-const selectedSpecies = computed(() => queryValue("species"))
-const selectedSubSpecies = computed(() => queryValue("sub_species"))
+const selectedGroup = computed(() => queryValue("group"))
+const selectedSubgroup = computed(() => queryValue("subgroup"))
 const page = computed(() => queryNumber("page") ?? 1)
 const photo = computed(() => queryNumber("photo"))
 
@@ -236,10 +244,10 @@ function updateQuery(changes: Record<string, string | number | null>, replace = 
   return replace ? router.replace({ query }) : router.push({ query })
 }
 
-const hasFilters = computed(() => !!(search.value || selectedSpecies.value || selectedSubSpecies.value))
+const hasFilters = computed(() => !!(search.value || selectedGroup.value || selectedSubgroup.value))
 
 function clearFilters() {
-  updateQuery({ q: null, species: null, sub_species: null, page: null })
+  updateQuery({ q: null, group: null, subgroup: null, page: null })
 }
 
 function setPage(newPage: number) {
@@ -277,7 +285,7 @@ async function loadImages() {
   loading.value = true
   loadError.value = false
   try {
-    const res = await getImages(appStore.locale, selectedSpecies.value, selectedSubSpecies.value, search.value,
+    const res = await getImages(appStore.locale, selectedGroup.value, selectedSubgroup.value, search.value,
       page.value, perPage)
     if (request != lastRequest) {
       return
@@ -297,60 +305,60 @@ async function loadImages() {
     }
   }
 }
-watch([search, selectedSpecies, selectedSubSpecies, page, () => appStore.locale], loadImages, { immediate: true })
+watch([search, selectedGroup, selectedSubgroup, page, () => appStore.locale], loadImages, { immediate: true })
 watch(page, () => window.scrollTo({ top: 0, behavior: "smooth" }))
 
-// species filters
-const species: Ref<{ key: string, value: string }[]> = ref([])
-const subSpecies: Ref<{ key: string, value: string }[]> = ref([])
+// group filters
+const groups: Ref<{ key: string, value: string }[]> = ref([])
+const subgroups: Ref<{ key: string, value: string }[]> = ref([])
 
 function toItems(values: string[]) {
   return values.filter(v => v).map(v => ({ key: v, value: capitalizeFirstLetter(v) }))
 }
 
-async function loadSpecies() {
+async function loadGroups() {
   try {
-    species.value = toItems(await speciesStore.getSpecies(appStore.locale))
+    groups.value = toItems(await groupsStore.getGroups(appStore.locale))
   } catch {
-    species.value = []
+    groups.value = []
   }
 }
 
-async function loadSubSpecies() {
-  subSpecies.value = []
-  if (selectedSpecies.value) {
+async function loadSubgroups() {
+  subgroups.value = []
+  if (selectedGroup.value) {
     try {
-      subSpecies.value = toItems(await speciesStore.getSubSpecies(appStore.locale, selectedSpecies.value))
+      subgroups.value = toItems(await groupsStore.getSubgroups(appStore.locale, selectedGroup.value))
     } catch {
-      subSpecies.value = []
+      subgroups.value = []
     }
   }
 }
 
-function selectSpecies(value: string | null) {
-  updateQuery({ species: value, sub_species: null, page: null })
+function selectGroup(value: string | null) {
+  updateQuery({ group: value, subgroup: null, page: null })
 }
 
-function selectSubSpecies(value: string | null) {
-  updateQuery({ sub_species: value, page: null })
+function selectSubgroup(value: string | null) {
+  updateQuery({ subgroup: value, page: null })
 }
 
-function clearSpeciesFilters() {
-  updateQuery({ species: null, sub_species: null, page: null })
+function clearGroupFilters() {
+  updateQuery({ group: null, subgroup: null, page: null })
 }
 
-const activeFiltersCount = computed(() => (selectedSpecies.value ? 1 : 0) + (selectedSubSpecies.value ? 1 : 0))
+const activeFiltersCount = computed(() => (selectedGroup.value ? 1 : 0) + (selectedSubgroup.value ? 1 : 0))
 const filtersSheet = ref(false)
 
-onMounted(loadSpecies)
-watch(selectedSpecies, loadSubSpecies, { immediate: true })
-// the species names depend on the language, the species filters are thus reset
+onMounted(loadGroups)
+watch(selectedGroup, loadSubgroups, { immediate: true })
+// the group names depend on the language, the group filters are thus reset
 watch(() => appStore.locale, async () => {
-  if (selectedSpecies.value || selectedSubSpecies.value) {
-    await updateQuery({ species: null, sub_species: null, page: null }, true)
+  if (selectedGroup.value || selectedSubgroup.value) {
+    await updateQuery({ group: null, subgroup: null, page: null }, true)
   }
-  await loadSpecies()
-  await loadSubSpecies()
+  await loadGroups()
+  await loadSubgroups()
 })
 
 // photo dialog
@@ -404,7 +412,7 @@ async function showSiblingPhoto(delta: 1 | -1) {
   }
   const newPage = page.value + delta
   try {
-    const res = await getImages(appStore.locale, selectedSpecies.value, selectedSubSpecies.value, search.value,
+    const res = await getImages(appStore.locale, selectedGroup.value, selectedSubgroup.value, search.value,
       newPage, perPage)
     const ids: number[] = res.data.items
     if (ids.length > 0) {
@@ -463,7 +471,7 @@ function showAllPhotosOfBird(imgId: number) {
   const birdInfo = imgStore.getImageInfo(imgId, appStore.locale)
   if (birdInfo) {
     photoOpenedHere = false
-    updateQuery({ q: birdInfo.bird.name, species: null, sub_species: null, page: null, photo: null })
+    updateQuery({ q: birdInfo.bird.name, group: null, subgroup: null, page: null, photo: null })
   }
 }
 

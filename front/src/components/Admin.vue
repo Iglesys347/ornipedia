@@ -39,9 +39,11 @@
         <v-window-item value="photo">
           <v-card class="mb-4">
             <v-card-text>
-              <v-autocomplete v-model="photoBird" :items="birds" item-value="id" :item-title="birdTitle"
-                :label="$t('admin.photo.bird')" :loading="birdsLoading" hide-details
-                :no-data-text="$t('image_gallery.no_species')" prepend-inner-icon="mdi-bird"></v-autocomplete>
+              <v-switch v-model="onlyWithoutPhotos" color="primary" density="compact" hide-details class="mb-2"
+                :label="$t('admin.photo.only_without_photos', { n: birdsWithoutPhotos })"></v-switch>
+              <v-autocomplete v-model="photoBird" :items="pickerBirds" item-value="id" :item-title="birdTitle"
+                :item-props="birdItemProps" :label="$t('admin.photo.bird')" :loading="birdsLoading" hide-details
+                :no-data-text="$t('image_gallery.no_result')" prepend-inner-icon="mdi-bird"></v-autocomplete>
             </v-card-text>
           </v-card>
 
@@ -191,13 +193,13 @@
                         :rules="[requiredFor(lang.code)]"></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6">
-                      <v-combobox v-model="translations[lang.code].species" :items="speciesOptions[lang.code]"
-                        :label="$t('admin.bird.species')" :hint="$t('admin.bird.species_hint')" :rules="[requiredFor(lang.code)]"
-                        @update:model-value="loadSubSpecies(lang.code)"></v-combobox>
+                      <v-combobox v-model="translations[lang.code].group" :items="groupOptions[lang.code]"
+                        :label="$t('admin.bird.group')" :hint="$t('admin.bird.group_hint')" :rules="[requiredFor(lang.code)]"
+                        @update:model-value="loadSubgroups(lang.code)"></v-combobox>
                     </v-col>
                     <v-col cols="12" sm="6">
-                      <v-combobox v-model="translations[lang.code].sub_species" :items="subSpeciesOptions[lang.code]"
-                        :label="$t('admin.bird.sub_species')"></v-combobox>
+                      <v-combobox v-model="translations[lang.code].subgroup" :items="subgroupOptions[lang.code]"
+                        :label="$t('admin.bird.subgroup')"></v-combobox>
                     </v-col>
                     <v-col cols="12">
                       <v-textarea v-model="translations[lang.code].details" :label="$t('admin.bird.details')"
@@ -239,14 +241,14 @@ import {
 import { getAllBirds, BirdSummary } from '@/api/birds';
 import { useAdminStore, LoginError } from '@/store/admin';
 import { useAppStore } from '@/store/app';
-import { useSpeciesStore } from '@/store/species';
+import { useGroupsStore } from '@/store/groups';
 import { supportedLanguages } from '@/translations/i18n';
 
 const { t } = useI18n()
 const { xs } = useDisplay()
 const adminStore = useAdminStore()
 const appStore = useAppStore()
-const speciesStore = useSpeciesStore()
+const groupsStore = useGroupsStore()
 
 // same limit as the API
 const MAX_UPLOAD_SIZE = 25 * 1024 * 1024
@@ -343,6 +345,19 @@ function birdTitle(bird: BirdSummary) {
   return `${capitalize(bird.name)} (${bird.latin_name})`
 }
 
+// number of photos under each bird of the list
+function birdItemProps(bird: BirdSummary) {
+  return { subtitle: t("admin.photo.photo_count", bird.image_count) }
+}
+
+// filter to find the birds still without photos
+const onlyWithoutPhotos = ref(false)
+const birdsWithoutPhotos = computed(() => birds.value.filter(b => b.image_count == 0).length)
+const pickerBirds = computed(() => onlyWithoutPhotos.value
+  // the selected bird stays in the list once it has photos (the field would show its id otherwise)
+  ? birds.value.filter(b => b.image_count == 0 || b.id === photoBird.value)
+  : birds.value)
+
 // photo form
 const photoFormRef: Ref<Form | null> = ref(null)
 const photoBird: Ref<number | null> = ref(null)
@@ -406,6 +421,8 @@ async function submitPhoto() {
     originalUrl.value = ""
     photoFormRef.value?.resetValidation()
     loadAuthorsAndLicenses()
+    // the photo counts of the birds changed
+    loadBirds()
   } catch (err) {
     notify(requestError(err), true)
   } finally {
@@ -521,6 +538,8 @@ async function importSelected() {
     notify(t("admin.commons.imported", added), false, link)
   }
   loadAuthorsAndLicenses()
+  // the photo counts of the birds changed
+  loadBirds()
 }
 
 // choosing a bird searches its photos (by latin name)
@@ -533,9 +552,9 @@ watch(photoBird, (birdId) => {
 })
 
 // bird form
-type TranslationFields = { name: string, species: string | null, sub_species: string | null, details: string }
+type TranslationFields = { name: string, group: string | null, subgroup: string | null, details: string }
 function emptyTranslations(): Record<string, TranslationFields> {
-  return Object.fromEntries(supportedLanguages.map(l => [l.code, { name: "", species: null, sub_species: null, details: "" }]))
+  return Object.fromEntries(supportedLanguages.map(l => [l.code, { name: "", group: null, subgroup: null, details: "" }]))
 }
 // the French translation is required, the others are optional
 const REQUIRED_LANGUAGE = "fr"
@@ -543,10 +562,10 @@ const REQUIRED_LANGUAGE = "fr"
 // an optional language is started as soon as one of its fields is filled
 function isStarted(lang: string) {
   const fields = translations.value[lang]
-  return [fields.name, fields.species, fields.sub_species, fields.details].some(v => v && String(v).trim())
+  return [fields.name, fields.group, fields.subgroup, fields.details].some(v => v && String(v).trim())
 }
 
-// name and species are required for the required language, and for a started optional language
+// name and group are required for the required language, and for a started optional language
 function requiredFor(lang: string) {
   return (value: unknown) => (lang != REQUIRED_LANGUAGE && !isStarted(lang)) || required(value)
 }
@@ -554,20 +573,20 @@ function requiredFor(lang: string) {
 const birdFormRef: Ref<Form | null> = ref(null)
 const latinName = ref("")
 const translations: Ref<Record<string, TranslationFields>> = ref(emptyTranslations())
-const speciesOptions: Ref<Record<string, string[]>> = ref({})
-const subSpeciesOptions: Ref<Record<string, string[]>> = ref({})
+const groupOptions: Ref<Record<string, string[]>> = ref({})
+const subgroupOptions: Ref<Record<string, string[]>> = ref({})
 const creatingBird = ref(false)
 
-async function loadSpeciesOptions() {
+async function loadGroupOptions() {
   for (const lang of supportedLanguages) {
-    speciesOptions.value[lang.code] = await speciesStore.getSpecies(lang.code).catch(() => [])
+    groupOptions.value[lang.code] = await groupsStore.getGroups(lang.code).catch(() => [])
   }
 }
 
-async function loadSubSpecies(lang: string) {
-  const species = translations.value[lang].species
-  subSpeciesOptions.value[lang] = species
-    ? (await speciesStore.getSubSpecies(lang, species).catch(() => [])).filter(s => s)
+async function loadSubgroups(lang: string) {
+  const group = translations.value[lang].group
+  subgroupOptions.value[lang] = group
+    ? (await groupsStore.getSubgroups(lang, group).catch(() => [])).filter(s => s)
     : []
 }
 
@@ -582,13 +601,13 @@ async function submitBird() {
     const res = await createBird(adminStore.password, latinName.value, languages.map(l => ({
       language_code: l.code,
       name: translations.value[l.code].name,
-      species: translations.value[l.code].species ?? "",
-      sub_species: translations.value[l.code].sub_species || null,
+      group: translations.value[l.code].group ?? "",
+      subgroup: translations.value[l.code].subgroup || null,
       details: translations.value[l.code].details || null,
     })))
     notify(t("admin.bird.added"))
-    // the species of the new bird may be new
-    speciesStore.clear()
+    // the group of the new bird may be new
+    groupsStore.clear()
     latinName.value = ""
     translations.value = emptyTranslations()
     birdFormRef.value?.resetValidation()
@@ -596,7 +615,7 @@ async function submitBird() {
     await loadBirds()
     photoBird.value = res.data.id
     tab.value = "photo"
-    loadSpeciesOptions()
+    loadGroupOptions()
   } catch (err) {
     notify(requestError(err), true)
   } finally {
@@ -608,7 +627,7 @@ watch(() => adminStore.loggedIn, (loggedIn) => {
   if (loggedIn) {
     loadBirds()
     loadAuthorsAndLicenses()
-    loadSpeciesOptions()
+    loadGroupOptions()
   }
 }, { immediate: true })
 watch(() => appStore.locale, () => adminStore.loggedIn && loadBirds())

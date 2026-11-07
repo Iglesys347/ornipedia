@@ -19,8 +19,8 @@ router = APIRouter(
 @router.get("", response_model=PaginatedResponse[Bird])
 def read_birds(
     language: str = "fr",
-    species: str | None = None,
-    sub_species: str | None = None,
+    group: str | None = None,
+    subgroup: str | None = None,
     page: int = Query(default=1, ge=1),
     per_page: int = Query(default=25, ge=0, le=MAX_PER_PAGE),
     db: Session = Depends(get_db),
@@ -28,8 +28,8 @@ def read_birds(
     return get_birds(
         db,
         language=language,
-        species=species,
-        sub_species=sub_species,
+        group=group,
+        subgroup=subgroup,
         page=page,
         per_page=per_page,
     )

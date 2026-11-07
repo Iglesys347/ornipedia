@@ -50,8 +50,8 @@ def setup_testing_db(tmp_path_factory):
             id=translation["id"],
             bird_id=TEST_BIRD_1["id"],
             name=translation["name"],
-            species=translation["species"],
-            sub_species=translation["sub_species"],
+            group_name=translation["group"],
+            subgroup_name=translation["subgroup"],
             details=translation["details"],
             language_code=translation["language_code"],
         )
@@ -89,11 +89,19 @@ def setup_testing_db(tmp_path_factory):
 
 @pytest.fixture
 def bird_without_images():
-    """Temporarily adds a bird without images nor sub-species to the database"""
+    """Temporarily adds a bird without images nor sub-group to the database"""
     session = TestingSessionLocal()
     session.add(Bird(id=TEST_BIRD_2["id"], latin_name=TEST_BIRD_2["latin_name"]))
     for translation in TEST_BIRD_2["translations"]:
-        session.add(Translation(bird_id=TEST_BIRD_2["id"], **translation))
+        session.add(Translation(
+            bird_id=TEST_BIRD_2["id"],
+            id=translation["id"],
+            name=translation["name"],
+            group_name=translation["group"],
+            subgroup_name=translation["subgroup"],
+            details=translation["details"],
+            language_code=translation["language_code"],
+        ))
     session.commit()
     yield TEST_BIRD_2
     session.query(Translation).filter(Translation.bird_id == TEST_BIRD_2["id"]).delete()

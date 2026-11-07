@@ -11,11 +11,11 @@ declare module 'vue' {
     BirdFinder: typeof import('./src/components/BirdFinder.vue')['default']
     BirdList: typeof import('./src/components/BirdList.vue')['default']
     BirdTile: typeof import('./src/components/BirdTile.vue')['default']
+    GroupFilters: typeof import('./src/components/GroupFilters.vue')['default']
+    GroupList: typeof import('./src/components/GroupList.vue')['default']
     Home: typeof import('./src/components/Home.vue')['default']
     Quiz: typeof import('./src/components/Quiz.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SpeciesFilters: typeof import('./src/components/SpeciesFilters.vue')['default']
-    SpeciesList: typeof import('./src/components/SpeciesList.vue')['default']
   }
 }

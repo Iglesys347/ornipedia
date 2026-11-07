@@ -6,8 +6,8 @@ from src.database import db_models
 
 class TranslationBase(BaseModel):
     name: str
-    species: str
-    sub_species: str | None = None
+    group: str
+    subgroup: str | None = None
     details: str | None = None
 
 
@@ -26,6 +26,8 @@ class BirdBase(BaseModel):
 
 
 class Bird(BirdBase, TranslationNoID):
+    # number of photos of the bird (e.g. to find the birds without photos)
+    image_count: int = 0
 
     @model_validator(mode="before")
     @classmethod

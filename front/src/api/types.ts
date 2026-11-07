@@ -3,7 +3,7 @@ export type Image = {
     bird_id: number
 }
 
-export type PaginatedSpecies = {
+export type PaginatedGroups = {
     total: number
     page: number
     per_page: number

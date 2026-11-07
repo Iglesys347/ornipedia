@@ -7,16 +7,16 @@ TEST_BIRD_1 = {
         {
             "id": 1,
             "name": "test_name1",
-            "species": "test_species1",
-            "sub_species": "test_sub_species1",
+            "group": "test_group1",
+            "subgroup": "test_subgroup1",
             "details": "test_details1",
             "language_code": "en",
         },
         {
             "id": 2,
             "name": "test_name2",
-            "species": "test_species2",
-            "sub_species": "test_sub_species2",
+            "group": "test_group2",
+            "subgroup": "test_subgroup2",
             "details": "test_details2",
             "language_code": "fr",
         },
@@ -61,45 +61,49 @@ BIRD1_EN = {
     "id": TEST_BIRD_1["id"],
     "latin_name": TEST_BIRD_1["latin_name"],
     "name": TEST_BIRD_1["translations"][0]["name"],
-    "species": TEST_BIRD_1["translations"][0]["species"],
-    "sub_species": TEST_BIRD_1["translations"][0]["sub_species"],
+    "group": TEST_BIRD_1["translations"][0]["group"],
+    "subgroup": TEST_BIRD_1["translations"][0]["subgroup"],
     "details": TEST_BIRD_1["translations"][0]["details"],
     "language_code": "en",
+    "image_count": len(TEST_BIRD_1["images"]),
 }
 
 BIRD1_FR = {
     "id": TEST_BIRD_1["id"],
     "latin_name": TEST_BIRD_1["latin_name"],
     "name": TEST_BIRD_1["translations"][1]["name"],
-    "species": TEST_BIRD_1["translations"][1]["species"],
-    "sub_species": TEST_BIRD_1["translations"][1]["sub_species"],
+    "group": TEST_BIRD_1["translations"][1]["group"],
+    "subgroup": TEST_BIRD_1["translations"][1]["subgroup"],
     "details": TEST_BIRD_1["translations"][1]["details"],
     "language_code": "fr",
+    "image_count": len(TEST_BIRD_1["images"]),
 }
 
 BIRD1_EN_IMAGES = {
     "id": TEST_BIRD_1["id"],
     "latin_name": TEST_BIRD_1["latin_name"],
     "name": TEST_BIRD_1["translations"][0]["name"],
-    "species": TEST_BIRD_1["translations"][0]["species"],
-    "sub_species": TEST_BIRD_1["translations"][0]["sub_species"],
+    "group": TEST_BIRD_1["translations"][0]["group"],
+    "subgroup": TEST_BIRD_1["translations"][0]["subgroup"],
     "details": TEST_BIRD_1["translations"][0]["details"],
     "language_code": "en",
     "image_ids": [img["id"] for img in TEST_BIRD_1["images"]],
+    "image_count": len(TEST_BIRD_1["images"]),
 }
 
 BIRD1_FR_IMAGES = {
     "id": TEST_BIRD_1["id"],
     "latin_name": TEST_BIRD_1["latin_name"],
     "name": TEST_BIRD_1["translations"][1]["name"],
-    "species": TEST_BIRD_1["translations"][1]["species"],
-    "sub_species": TEST_BIRD_1["translations"][1]["sub_species"],
+    "group": TEST_BIRD_1["translations"][1]["group"],
+    "subgroup": TEST_BIRD_1["translations"][1]["subgroup"],
     "details": TEST_BIRD_1["translations"][1]["details"],
     "language_code": "fr",
     "image_ids": [img["id"] for img in TEST_BIRD_1["images"]],
+    "image_count": len(TEST_BIRD_1["images"]),
 }
 
-# bird without any image nor sub-species
+# bird without any image nor sub-group
 TEST_BIRD_2 = {
     "id": 2,
     "latin_name": "test_latin_name2",
@@ -107,8 +111,8 @@ TEST_BIRD_2 = {
         {
             "id": 3,
             "name": "test_name3",
-            "species": "test_species3",
-            "sub_species": None,
+            "group": "test_group3",
+            "subgroup": None,
             "details": None,
             "language_code": "fr",
         },

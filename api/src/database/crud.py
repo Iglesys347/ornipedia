@@ -33,8 +33,8 @@ def get_bird(db: Session, bird_id: int, language: str = "fr") -> Bird | None:
 def get_birds(
     db: Session,
     language: str = "fr",
-    species: str | None = None,
-    sub_species: str | None = None,
+    group: str | None = None,
+    subgroup: str | None = None,
     page: int = 1,
     per_page: int = 25,
 ) -> PaginatedResponse[Bird]:
@@ -44,10 +44,10 @@ def get_birds(
         .options(contains_eager(db_models.Bird.translations))
         .filter(db_models.Translation.language_code == language)
     )
-    if species:
-        query = query.filter(db_models.Translation.species == species)
-    if sub_species:
-        query = query.filter(db_models.Translation.sub_species == sub_species)
+    if group:
+        query = query.filter(db_models.Translation.group_name == group)
+    if subgroup:
+        query = query.filter(db_models.Translation.subgroup_name == subgroup)
     return paginate(query, page, per_page)
 
 
@@ -70,8 +70,8 @@ def get_images_ids(
     db: Session,
     language: str = "fr",
     search: str | None = None,
-    species: str | None = None,
-    sub_species: str | None = None,
+    group: str | None = None,
+    subgroup: str | None = None,
     page: int = 1,
     per_page: int = 25,
 ):
@@ -85,10 +85,10 @@ def get_images_ids(
     )
     if search:
         query = query.filter(db_models.Translation.name.ilike(f"%{search}%"))
-    if species:
-        query = query.filter(db_models.Translation.species == species)
-    if sub_species:
-        query = query.filter(db_models.Translation.sub_species == sub_species)
+    if group:
+        query = query.filter(db_models.Translation.group_name == group)
+    if subgroup:
+        query = query.filter(db_models.Translation.subgroup_name == subgroup)
     return paginate(query, page, per_page)
 
 
@@ -109,18 +109,18 @@ def get_image_info(db: Session, img_id: int):
 
 
 def get_random_image(
-    db: Session, species: str | None = None, sub_species: str | None = None
+    db: Session, group: str | None = None, subgroup: str | None = None
 ):
     query = db.query(db_models.Image)
-    if species or sub_species:
+    if group or subgroup:
         query = query.join(
             db_models.Translation,
             onclause=db_models.Translation.bird_id == db_models.Image.bird_id,
         ).distinct()
-    if species:
-        query = query.filter(db_models.Translation.species == species)
-    if sub_species:
-        query = query.filter(db_models.Translation.sub_species == sub_species)
+    if group:
+        query = query.filter(db_models.Translation.group_name == group)
+    if subgroup:
+        query = query.filter(db_models.Translation.subgroup_name == subgroup)
     row_count = query.count()
     if row_count:
         random_offset = random.randint(0, row_count - 1)
@@ -128,25 +128,25 @@ def get_random_image(
     return None
 
 
-def get_species(
+def get_groups(
     db: Session,
     language: str = "fr",
     page: int = 1,
     per_page: int = 25,
 ) -> PaginatedResponse[str]:
-    query = db.query(db_models.Translation.species).filter(
+    query = db.query(db_models.Translation.group_name).filter(
         db_models.Translation.language_code == language
     )
     return paginate(query, page, per_page, distinct=True, str_items=True)
 
 
-def get_sub_species(
-    db: Session, species: str, language: str = "fr", page: int = 1, per_page: int = 25
+def get_subgroups(
+    db: Session, group: str, language: str = "fr", page: int = 1, per_page: int = 25
 ) -> PaginatedResponse[str]:
-    query = db.query(db_models.Translation.sub_species).filter(
+    query = db.query(db_models.Translation.subgroup_name).filter(
         db_models.Translation.language_code == language,
-        db_models.Translation.species == species,
-        db_models.Translation.sub_species.isnot(None),
+        db_models.Translation.group_name == group,
+        db_models.Translation.subgroup_name.isnot(None),
     )
     return paginate(query, page, per_page, distinct=True, str_items=True)
 
@@ -164,16 +164,16 @@ def insert_translation(
     bird_id: int,
     language_code: str,
     name: str,
-    species: str,
-    sub_species: str | None = None,
+    group: str,
+    subgroup: str | None = None,
     details: str | None = None,
 ) -> db_models.Translation:
     db_translation = db_models.Translation(
         bird_id=bird_id,
         language_code=language_code,
         name=name,
-        species=species,
-        sub_species=sub_species,
+        group_name=group,
+        subgroup_name=subgroup,
         details=details,
     )
     db.add(db_translation)
