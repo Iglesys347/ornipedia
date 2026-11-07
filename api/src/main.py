@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.router import admin, birds, groups, images
+from src.router import admin, birds, groups, images, quiz
 
 from src.settings import ALLOWED_ORIGINS
 
@@ -25,4 +25,5 @@ app.add_middleware(
 app.include_router(birds.router)
 app.include_router(images.router)
 app.include_router(groups.router)
+app.include_router(quiz.router)
 app.include_router(admin.router)
